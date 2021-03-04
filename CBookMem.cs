@@ -209,40 +209,46 @@ namespace NSProgram
 		public const string defExt = ".mem";
 		public string fileShortName = "book";
 		public static CChess chess = new CChess();
-		bool memCorrect = false;
-		int memMax = 0;
-		int memStandard = 0;
 		readonly int[] arrMem = new int[0x100];
 		readonly CRecList recList = new CRecList();
 
-		public bool LoadFromFile(string path)
-		{
+		public bool LoadFromFile(string path) {
 			fileShortName = Path.GetFileNameWithoutExtension(path);
-			recList.Clear();
+			Clear();
+			return FileAdd(path);
+		}
+
+		void ShowCountMoves()
+		{
+			Console.WriteLine($"info string book {recList.Count:N0} moves");
+		}
+
+		public bool FileAdd(string path)
+		{
 			if (File.Exists(path))
 			{
-				memMax = 0;
-				using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
+				FileStream fs = null;
+				try
 				{
-					reader.ReadString();
-					int count = reader.ReadInt32();
-					for (int n = 0; n < count; n++)
-					{
-						CRec rec = new CRec();
-						rec.key = reader.ReadUInt64();
-						rec.mat = reader.ReadSByte();
-						rec.mem = reader.ReadByte();
-						arrMem[rec.mem]++;
-						if ((rec.mem > 0) && (memMax < arrMem[rec.mem]))
-							memMax = arrMem[rec.mem];
-						//Console.WriteLine(rec.key);
-						recList.Add(rec);
-					}
-					memStandard = (count >> 8) + 1;
-					int memLimit = (count >> 7) + 1;
-					memCorrect = memMax > memLimit;
-					Console.WriteLine($"info string book {count:N0} moves");
+					fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 				}
+				catch { }
+				if (fs != null)
+					using (BinaryReader reader = new BinaryReader(fs))
+					{
+						reader.ReadString();
+						int count = reader.ReadInt32();
+						for (int n = 0; n < count; n++)
+						{
+							CRec rec = new CRec();
+							rec.key = reader.ReadUInt64();
+							rec.mat = reader.ReadSByte();
+							rec.mem = reader.ReadByte();
+							arrMem[rec.mem]++;
+							recList.Add(rec);
+						}
+					}
+				ShowCountMoves();
 				return true;
 			}
 			return false;
@@ -253,30 +259,41 @@ namespace NSProgram
 			string ext = Path.GetExtension(path);
 			if (String.IsNullOrEmpty(ext))
 				path += defExt;
-			//using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create,FileAccess.Write)))
-			using (BinaryWriter writer = new BinaryWriter(File.Open(path, FileMode.Create)))
+			int rand = CChess.random.Next(4);
+			double memMargin = recList.Count/255.0;
+			bool[] arrAct = new bool[0x100];
+			for (int n = 0xff; n > 0; n--)
+				arrAct[n] = arrMem[n] > memMargin;
+			FileStream fs = null;
+			try
 			{
-				writer.Write(name);
-				writer.Write(recList.Count);
-				foreach (CRec rec in recList)
-				{
-					if (memCorrect && rec.mem > 0)
-						if (arrMem[rec.mem] > memStandard)
-						{
-							arrMem[rec.mem--]--;
-							arrMem[rec.mem]++;
-						}
-					writer.Write(rec.key);
-					writer.Write(rec.mat);
-					writer.Write(rec.mem);
-				}
+				fs = File.Open(path, FileMode.Create, FileAccess.Write);
 			}
-			memCorrect = false;
+			catch { }
+			if (fs != null)
+				using (BinaryWriter writer = new BinaryWriter(fs))
+				{
+					writer.Write(name);
+					writer.Write(recList.Count);
+					foreach (CRec rec in recList)
+					{
+						rand = ++rand & 3;
+						if (arrAct[rec.mem] && (rand == 0))
+						{
+								arrMem[rec.mem--]--;
+								arrMem[rec.mem]++;
+						}
+						writer.Write(rec.key);
+						writer.Write(rec.mat);
+						writer.Write(rec.mem);
+					}
+				}
 		}
 
 		public void Clear()
 		{
 			recList.Clear();
+			ShowCountMoves();
 		}
 
 		public void SaveToFile()
@@ -420,6 +437,11 @@ namespace NSProgram
 				return umo;
 			}
 			return "";
+		}
+
+		public void Info()
+		{
+			Console.WriteLine($"moves {recList.Count:N0} new {arrMem[0xff]:N0} medium {arrMem[0x80]:N0} old {arrMem[0]:N0}");
 		}
 
 	}

@@ -14,7 +14,7 @@ namespace NSProgram
 		{
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			CUci Uci = new CUci();
-			CBookMem bookMem = new CBookMem();
+			CBookMem book = new CBookMem();
 			CChess chess = CBookMem.chess;
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
@@ -46,14 +46,14 @@ namespace NSProgram
 						break;
 				}
 			}
-			string book = String.Join(" ", listBn);
-			string engine = String.Join(" ", listEf);
+			string bookName = String.Join(" ", listBn);
+			string engineName = String.Join(" ", listEf);
 			string arguments = String.Join(" ", listEa);
 			Process myProcess = new Process();
-			if (File.Exists(engine))
+			if (File.Exists(engineName))
 			{
-				myProcess.StartInfo.FileName = engine;
-				myProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(engine);
+				myProcess.StartInfo.FileName = engineName;
+				myProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(engineName);
 				myProcess.StartInfo.UseShellExecute = false;
 				myProcess.StartInfo.RedirectStandardInput = true;
 				myProcess.StartInfo.Arguments = arguments;
@@ -61,19 +61,39 @@ namespace NSProgram
 			}
 			else
 			{
-				if (engine != "")
+				if (engineName != "")
 					Console.WriteLine("info string missing engine");
-				engine = "";
+				engineName = "";
 			}
 
-			if (!bookMem.LoadFromFile(book))
-				if (!bookMem.LoadFromFile($"{book}{CBookMem.defExt}"))
-							Console.WriteLine($"info string missing book {book}");
+			if (!book.LoadFromFile(bookName))
+				if (!book.LoadFromFile($"{bookName}{CBookMem.defExt}"))
+							Console.WriteLine($"info string missing book {bookName}");
 			while (true)
 			{
 				string msg = Console.ReadLine();
 				Uci.SetMsg(msg);
-				if ((Uci.command != "go") && (engine != ""))
+				if (Uci.command == "book")
+				{
+					switch (Uci.tokens[1])
+					{
+						case "clear":
+							book.Clear();
+							break;
+						case "info":
+							book.Info();
+							break;
+						case "add":
+							if(!book.FileAdd(Uci.GetValue(2, 0)))
+								Console.WriteLine("File not found");
+							break;
+						case "save":
+							book.SaveToFile(Uci.GetValue(2, 0));
+							break;
+					}
+					continue;
+				}
+				if ((Uci.command != "go") && (engineName != ""))
 					myProcess.StandardInput.WriteLine(msg);
 				switch (Uci.command)
 				{
@@ -98,15 +118,15 @@ namespace NSProgram
 						{
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
-							bookMem.Add(movesUci);
-							bookMem.SaveToFile();
+							book.Add(movesUci);
+							book.SaveToFile();
 						}
 						break;
 					case "go":
-						string move = bookMem.GetMove();
+						string move = book.GetMove();
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
-						else if (engine == "")
+						else if (engineName == "")
 							Console.WriteLine("enginemove");
 						else
 							myProcess.StandardInput.WriteLine(msg);

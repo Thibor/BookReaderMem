@@ -18,12 +18,9 @@ namespace NSUci
 		public int GetInt(string key, int def)
 		{
 			for (int n = 0; n < tokens.Length - 1; n++)
-			{
 				if (tokens[n] == key)
-				{
-					return Int32.Parse(tokens[n + 1]);
-				}
-			}
+					if (Int32.TryParse(tokens[n + 1], out int result))
+						return result;
 			return def;
 		}
 
@@ -43,13 +40,13 @@ namespace NSUci
 		{
 			int istart = GetIndex(start, tokens.Length);
 			int iend = GetIndex(end, tokens.Length);
-			if (iend < istart)
-				iend = tokens.Length;
 			return GetValue(istart+1,iend-1);
 		}
 
 		public string GetValue(int start, int end)
 		{
+			if (end < start)
+				end = tokens.Length - 1;
 			string value = String.Empty;
 			for (int n = start; n <= end; n++)
 			{
