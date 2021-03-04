@@ -68,11 +68,18 @@ namespace NSProgram
 
 			if (!book.LoadFromFile(bookName))
 				if (!book.LoadFromFile($"{bookName}{CBookMem.defExt}"))
-							Console.WriteLine($"info string missing book {bookName}");
+							Console.WriteLine($"info string missing book [{bookName}]");
 			while (true)
 			{
 				string msg = Console.ReadLine();
 				Uci.SetMsg(msg);
+				if(Uci.command == "help")
+				{
+					Console.WriteLine("book add [filename].[mem] - add moves to the book");
+					Console.WriteLine("book save [filename].[mem] - save book to the file");
+					Console.WriteLine("book clear - clear all moves from the book");
+					Console.WriteLine("book info - show information about the book");
+				}
 				if (Uci.command == "book")
 				{
 					switch (Uci.tokens[1])

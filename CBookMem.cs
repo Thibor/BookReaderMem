@@ -214,7 +214,7 @@ namespace NSProgram
 
 		public bool LoadFromFile(string path) {
 			fileShortName = Path.GetFileNameWithoutExtension(path);
-			Clear();
+			recList.Clear();
 			return FileAdd(path);
 		}
 
