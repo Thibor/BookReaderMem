@@ -8,6 +8,7 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **-bn** mem opening Book file Name<br/>
 **-ef** chess Engine File name<br/>
 **-ea** chess Engine Arguments<br/>
+**-w** add new moves to the book<br/>
 
 ## Console commands
 
