@@ -14,7 +14,7 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 
 **book load** [filename].[mem] - clear and add<br/>
 **book save** [filename].[mem] - save book to the file<br/>
-**book addfile** [filename].[mem] - add moves to the book<br/>
+**book addfile** [filename].[mem] - adds moves from another book<br/>
 **book clear** - clear all moves from the book<br/>
 
 ### Examples
