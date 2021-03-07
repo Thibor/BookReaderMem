@@ -22,6 +22,11 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 -bn book.mem -ef stockfish.exe<br/>
 book.mem -ef stockfish.exe
 
-The program will first try to find move in chess opening book named book.mem, and if it doesn't find any move in it, it will run a chess engine named stockfish.exe 
+The program will first try to find move in chess opening book named book.mem, and if it doesn't find any move in it, it will run a chess engine named stockfish.exe
+
+-bn bigmem.mem -w -ef stockfish.exe
+bigmem -ef stockfish.exe -w
+
+The program will first try to find move in chess opening book named bigmem.mem, and if it doesn't find any move in it, it will run a chess engine named stockfish.exe. If engine loose game, winner moves will be added to the book. If the book does not exist, the program will create it.
 
 
