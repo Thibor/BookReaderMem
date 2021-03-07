@@ -206,16 +206,22 @@ namespace NSProgram
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		public const string name = "BookReaderMem";
 		public const string version = "2021-03-02";
+		public string fileShortName = "Book";
 		public const string defExt = ".mem";
-		public string fileShortName = "book";
 		public static CChess chess = new CChess();
 		readonly int[] arrMem = new int[0x100];
 		readonly CRecList recList = new CRecList();
 
-		public bool LoadFromFile(string path) {
+		string GetHeader()
+		{
+			return $"{name} {version}";
+		}
+
+		public bool LoadFromFile(string path)
+		{
 			fileShortName = Path.GetFileNameWithoutExtension(path);
 			recList.Clear();
-			return FileAdd(path);
+			return AddFile(path);
 		}
 
 		void ShowCountMoves()
@@ -223,7 +229,7 @@ namespace NSProgram
 			Console.WriteLine($"info string book {recList.Count:N0} moves");
 		}
 
-		public bool FileAdd(string path)
+		public bool AddFile(string path)
 		{
 			if (File.Exists(path))
 			{
@@ -236,17 +242,19 @@ namespace NSProgram
 				if (fs != null)
 					using (BinaryReader reader = new BinaryReader(fs))
 					{
-						reader.ReadString();
-						int count = reader.ReadInt32();
-						for (int n = 0; n < count; n++)
-						{
-							CRec rec = new CRec();
-							rec.key = reader.ReadUInt64();
-							rec.mat = reader.ReadSByte();
-							rec.mem = reader.ReadByte();
-							arrMem[rec.mem]++;
-							recList.Add(rec);
-						}
+						string header = GetHeader();
+						if (reader.ReadString() != header)
+							Console.WriteLine($"This program only supports version  [{header}]");
+						else
+							while (reader.BaseStream.Position != reader.BaseStream.Length)
+							{
+								CRec rec = new CRec();
+								rec.hash = reader.ReadUInt64();
+								rec.mat = reader.ReadSByte();
+								rec.mem = reader.ReadByte();
+								arrMem[rec.mem]++;
+								recList.Add(rec);
+							}
 					}
 				ShowCountMoves();
 				return true;
@@ -260,10 +268,10 @@ namespace NSProgram
 			if (String.IsNullOrEmpty(ext))
 				path += defExt;
 			int rand = CChess.random.Next(4);
-			double memMargin = recList.Count/255.0;
+			double memOptimal = recList.Count / 255.0;
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0xff; n > 0; n--)
-				arrAct[n] = arrMem[n] > memMargin;
+				arrAct[n] = arrMem[n] > memOptimal;
 			FileStream fs = null;
 			try
 			{
@@ -273,19 +281,23 @@ namespace NSProgram
 			if (fs != null)
 				using (BinaryWriter writer = new BinaryWriter(fs))
 				{
-					writer.Write(name);
-					writer.Write(recList.Count);
+					ulong lastHash = 0;
+					recList.SortHash();
+					writer.Write(GetHeader());
 					foreach (CRec rec in recList)
 					{
+						if (rec.hash == lastHash)
+							continue;
 						rand = ++rand & 3;
 						if (arrAct[rec.mem] && (rand == 0))
 						{
-								arrMem[rec.mem--]--;
-								arrMem[rec.mem]++;
+							arrMem[rec.mem--]--;
+							arrMem[rec.mem]++;
 						}
-						writer.Write(rec.key);
+						writer.Write(rec.hash);
 						writer.Write(rec.mat);
 						writer.Write(rec.mem);
+						lastHash = rec.hash;
 					}
 				}
 		}
@@ -339,7 +351,7 @@ namespace NSProgram
 			return mate;
 		}
 
-		public void Add(string[] moves)
+		public void AddUci(string[] moves)
 		{
 			bool update = true;
 			int count = moves.Length;
@@ -350,7 +362,7 @@ namespace NSProgram
 				chess.MakeMove(m);
 				int mate = GetMate(n, count);
 				CRec rec = new CRec();
-				rec.key = GetHash();
+				rec.hash = GetHash();
 				rec.mat = MateToMat(mate);
 				if (IsWinner(n, count))
 					recList.AddRec(rec);
@@ -360,14 +372,14 @@ namespace NSProgram
 			}
 		}
 
-		public void Add(string moves)
+		public void AddUci(string moves)
 		{
-			Add(moves.Split(' '));
+			AddUci(moves.Split(' '));
 		}
 
-		public void Add(List<string> moves)
+		public void AddUci(List<string> moves)
 		{
-			Add(moves.ToArray());
+			AddUci(moves.ToArray());
 		}
 
 		public ulong GetHash()
@@ -439,9 +451,21 @@ namespace NSProgram
 			return "";
 		}
 
+		public void ShowLevel(int lev)
+		{
+			Console.WriteLine(String.Format("{0,4} {1,12}",lev, arrMem[lev]));
+		}
+
 		public void Info()
 		{
-			Console.WriteLine($"moves {recList.Count:N0} new {arrMem[0xff]:N0} medium {arrMem[0x80]:N0} old {arrMem[0]:N0}");
+			double memOptimal = recList.Count / 255.0;
+			Console.WriteLine($"moves {recList.Count:N0} optimal {memOptimal:N0}");
+			Console.WriteLine();
+			ShowLevel(0xff);
+			ShowLevel(0xb0);
+			ShowLevel(0x80);
+			ShowLevel(0x40);
+			ShowLevel(0x00);
 		}
 
 	}

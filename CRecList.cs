@@ -8,16 +8,9 @@ namespace NSProgram
 {
 	class CRec
 	{
-		public ulong key;
-		public sbyte mat;
-		public byte mem;
-
-		public CRec()
-		{
-			key = 0;
-			mat = 0;
-			mem = 0xff;
-		}
+		public ulong hash = 0;
+		public sbyte mat = 0;
+		public byte mem = 0xff;
 	}
 
 	class CRecList : List<CRec>
@@ -25,13 +18,13 @@ namespace NSProgram
 
 		public void AddRec(CRec rec)
 		{
-			int index = FindHash(rec.key);
+			int index = FindHash(rec.hash);
 			if (index == Count)
 				Add(rec);
 			else
 			{
 				CRec r = this[index];
-				if (r.key == rec.key)
+				if (r.hash == rec.hash)
 				{
 					if (r.mat > rec.mat)
 						r.mat--;
@@ -46,11 +39,11 @@ namespace NSProgram
 
 		public bool RecUpdate(CRec rec)
 		{
-			int index = FindHash(rec.key);
-			if(index < Count)
+			int index = FindHash(rec.hash);
+			if (index < Count)
 			{
 				CRec r = this[index];
-				if (r.key == rec.key)
+				if (r.hash == rec.hash)
 				{
 					if (r.mat > rec.mat)
 						r.mat--;
@@ -72,9 +65,9 @@ namespace NSProgram
 					return last;
 				int middle = (first + last) >> 1;
 				CRec rec = this[middle];
-				if (hash < rec.key)
+				if (hash < rec.hash)
 					last = middle;
-				else if (hash > rec.key)
+				else if (hash > rec.hash)
 					first = middle;
 				else
 					return middle;
@@ -85,9 +78,21 @@ namespace NSProgram
 		{
 			int index = FindHash(hash);
 			if (index < Count)
-				if (this[index].key == hash)
+				if (this[index].hash == hash)
 					return this[index];
 			return null;
+		}
+
+		public void SortHash()
+		{
+			Sort(delegate (CRec r1, CRec r2)
+			{
+				if (r1.hash > r2.hash)
+					return 1;
+				if (r1.hash < r2.hash)
+					return -1;
+				return 0;
+			});
 		}
 
 

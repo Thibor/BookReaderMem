@@ -61,15 +61,15 @@ namespace NSUci
 		{
 			if (tokens.Length > 0)
 				return tokens[tokens.Length - 1];
-			return "";
+			return String.Empty;
 		}
 
 		public void SetMsg(string msg)
 		{
-			if (msg == null)
-				msg = "";
+			if (String.IsNullOrEmpty(msg))
+				msg = String.Empty;
 			tokens = msg.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-			command = tokens.Length > 0 ? tokens[0] : "";
+			command = tokens.Length > 0 ? tokens[0] : String.Empty;
 		}
 	}
 }

@@ -9,6 +9,13 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **-ef** chess Engine File name<br/>
 **-ea** chess Engine Arguments<br/>
 
+## Console commands
+
+**book load** [filename].[mem] - clear and add<br/>
+**book save** [filename].[mem] - save book to the file<br/>
+**book addfile** [filename].[mem] - add moves to the book<br/>
+**book clear** - clear all moves from the book<br/>
+
 ### Examples
 
 -bn book.mem -ef stockfish.exe<br/>
