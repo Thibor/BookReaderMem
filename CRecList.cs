@@ -10,7 +10,7 @@ namespace NSProgram
 	{
 		public ulong hash = 0;
 		public sbyte mat = 0;
-		public byte mem = 0xff;
+		public byte age = 0xff;
 	}
 
 	class CRecList : List<CRec>
@@ -30,10 +30,22 @@ namespace NSProgram
 						r.mat--;
 					if (r.mat < rec.mat)
 						r.mat++;
-					r.mem = 0xff;
+					r.age = 0xff;
 				}
 				else
 					Insert(index, rec);
+			}
+		}
+
+		public void RecDelete(int count)
+		{
+			if ((count == 0)||(count >= Count))
+				Clear();
+			else
+			{
+				SortMem();
+				RemoveRange(Count-count,count);
+				SortHash();
 			}
 		}
 
@@ -92,6 +104,14 @@ namespace NSProgram
 				if (r1.hash < r2.hash)
 					return -1;
 				return 0;
+			});
+		}
+
+		public void SortMem()
+		{
+			Sort(delegate (CRec r1, CRec r2)
+			{
+				return r2.age - r1.age;
 			});
 		}
 

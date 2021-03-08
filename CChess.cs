@@ -42,7 +42,7 @@ namespace NSChess
 		const int maskColor = colorBlack | colorWhite;
 		public int g_castleRights = 0xf;
 		ulong g_hash = 0;
-		public int g_passing = 0;
+		int g_passing = 0;
 		public int g_move50 = 0;
 		public int g_moveNumber = 0;
 		public bool g_inCheck = false;
@@ -259,6 +259,25 @@ namespace NSChess
 			return false;
 		}
 
+		public bool IsValidMoveUmo(string move, out string umo, out int emo)
+		{
+			umo = move;
+			emo = 0;
+			move = move.ToLower();
+			List<int> moves = GenerateValidMoves(out _);
+			foreach (int m in moves)
+			{
+				string u = EmoToUmo(m);
+				if( (u == move)||(u == $"{move}q"))
+				{
+					umo = u;
+					emo = m;
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public bool IsValidMove(string move, out string umo, out string san, out int emo)
 		{
 			emo = 0;
@@ -432,7 +451,7 @@ namespace NSChess
 			List<int> moves = new List<int>(64);
 			List<int> am = GenerateAllMoves(whiteTurn, false);
 			if (!g_inCheck)
-				foreach(int m in am)
+				foreach (int m in am)
 				{
 					MakeMove(m);
 					GenerateAllMoves(whiteTurn, true);
@@ -699,24 +718,31 @@ namespace NSChess
 			return true;
 		}
 
-		public int MakeMove(string emo, out int piece)
+		public int MakeMove(string umo, out int piece)
 		{
 			piece = 0;
-			int m = UmoToEmo(emo);
-			if (m > 0)
+			int emo = UmoToEmo(umo);
+			if (emo > 0)
 			{
-				piece = g_board[m & 0xff] & 7;
-				MakeMove(m);
+				piece = g_board[emo & 0xff] & 7;
+				MakeMove(emo);
 			}
-			return m;
+			return emo;
 		}
 
 		public int MakeMove(string umo)
 		{
-			int m = UmoToEmo(umo);
-			if (m > 0)
+			int emo = UmoToEmo(umo);
+			if (emo > 0)
+				MakeMove(emo);
+			return emo;
+		}
+
+		public void MakeMoves(string moves)
+		{
+			string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+			foreach (string m in am)
 				MakeMove(m);
-			return m;
 		}
 
 		public void MakeMove(int move)

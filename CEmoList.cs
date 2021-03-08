@@ -10,6 +10,7 @@ namespace NSProgram
 	{
 		public int emo;
 		public sbyte mat;
+		public byte age;
 	}
 
 	class CEmoList:List<CEmo>

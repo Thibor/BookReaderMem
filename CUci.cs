@@ -7,7 +7,7 @@ namespace NSUci
 		public string command;
 		public string[] tokens;
 
-		public int GetIndex(string key, int def)
+		public int GetIndex(string key, int def = -1)
 		{
 			for (int n = 0; n < tokens.Length; n++)
 				if (tokens[n] == key)
@@ -15,13 +15,19 @@ namespace NSUci
 			return def;
 		}
 
-		public int GetInt(string key, int def)
+		public int GetInt(int index,int def = 0)
 		{
-			for (int n = 0; n < tokens.Length - 1; n++)
-				if (tokens[n] == key)
-					if (Int32.TryParse(tokens[n + 1], out int result))
-						return result;
+			if ((index < 0)||(index >= tokens.Length))
+				return def;
+			if (Int32.TryParse(tokens[index], out int result))
+				return result;
 			return def;
+		}
+
+		public int GetInt(string key, int def = 0)
+		{
+			int index = GetIndex(key);
+			return GetInt(index + 1,def);
 		}
 
 		public bool GetValue(string name, out string value)

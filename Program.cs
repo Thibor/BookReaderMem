@@ -79,29 +79,32 @@ namespace NSProgram
 				string msg = Console.ReadLine().Trim();
 				if ((msg == "help")||(msg == "book"))
 				{
-					Console.WriteLine("book load [filename].[mem] - clear and add");
+					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
-					Console.WriteLine("book addfile [filename].[mem] - add moves to the book");
-					Console.WriteLine("book clear - clear all moves from the book");
+					Console.WriteLine("book delete [number] - clear all moves from the book, or delete number of moves");
+					Console.WriteLine("book addfile [filename].[mem] - add moves to the book from file");
 					continue;
 				}
 				Uci.SetMsg(msg);
 				if (Uci.command == "book")
 				{
-					if (Uci.tokens.Length > 1)
 						switch (Uci.tokens[1])
 						{
 							case "load":
 								if (!book.LoadFromFile(Uci.GetValue(2, 0)))
 									Console.WriteLine("File not found");
 								break;
-							case "clear":
-								book.Clear();
+							case "delete":
+								int count = Uci.GetInt(2);
+								book.Delete(count);
 								break;
-							case "info":
-								book.Info();
+							case "moves":
+								book.InfoMoves(Uci.GetValue(2, 0));
 								break;
-							case "addfile":
+						case "structure":
+							book.InfoStructure();
+							break;
+						case "addfile":
 								if (!book.AddFile(Uci.GetValue(2, 0)))
 									Console.WriteLine("File not found");
 								break;
