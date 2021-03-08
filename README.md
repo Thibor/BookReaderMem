@@ -18,7 +18,7 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **book addfile** [filename].[mem] - adds moves from another book<br/>
 **book adduci** [filename].[mem] - adds a sequence of moves in uci format<br/>
 **book clear** - clear all moves from the book<br/>
-**book moves [uci moves]** - make sequence of moves in uci format and shows possible continuations<br/>
+**book moves** [uci moves] - make sequence of moves in uci format and shows possible continuations<br/>
 **book structure** - show structure of the book<br/>
 
 ### Examples
