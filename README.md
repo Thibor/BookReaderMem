@@ -23,10 +23,10 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 
 ### Examples
 
-BookReaderMem.exe **-bn book.mem -ef stockfish.exe**<br/>
-BookReaderMem.exe **book.mem -ef stockfish.exe**
+BookReaderMem.exe **-bn bigmem.mem -ef stockfish.exe**<br/>
+BookReaderMem.exe **bigmem.mem -ef stockfish.exe**
 
-The program will first try to find move in chess opening book named book.mem, and if it doesn't find any move in it, it will run a chess engine named stockfish.exe
+The program will first try to find move in chess opening book named bigmem.mem, and if it doesn't find any move in it, it will run a chess engine named stockfish.exe
 
 BookReaderMem.exe **-bn bigmem.mem -w -ef stockfish.exe**<br/>
 BookReaderMem.exe **bigmem -ef stockfish.exe -w**
