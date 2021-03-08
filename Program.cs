@@ -77,7 +77,7 @@ namespace NSProgram
 			while (true)
 			{
 				string msg = Console.ReadLine().Trim();
-				if ((msg == "help")||(msg == "book"))
+				if ((msg == "help") || (msg == "book"))
 				{
 					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
@@ -88,37 +88,37 @@ namespace NSProgram
 				Uci.SetMsg(msg);
 				if (Uci.command == "book")
 				{
-						switch (Uci.tokens[1])
-						{
-							case "load":
-								if (!book.LoadFromFile(Uci.GetValue(2, 0)))
-									Console.WriteLine("File not found");
-								break;
-							case "delete":
-								int count = Uci.GetInt(2);
-								book.Delete(count);
-								break;
-							case "moves":
-								book.InfoMoves(Uci.GetValue(2, 0));
-								break;
+					switch (Uci.tokens[1])
+					{
+						case "load":
+							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
+								Console.WriteLine("File not found");
+							break;
+						case "delete":
+							int count = Uci.GetInt(2);
+							book.Delete(count);
+							break;
+						case "moves":
+							book.InfoMoves(Uci.GetValue(2, 0));
+							break;
 						case "structure":
 							book.InfoStructure();
 							break;
 						case "addfile":
-								if (!book.AddFile(Uci.GetValue(2, 0)))
-									Console.WriteLine("File not found");
-								break;
-							case "adduci":
-								string movesUci = Uci.GetValue(2, 0);
-								book.AddUci(movesUci);
-								break;
-							case "save":
-								book.SaveToFile(Uci.GetValue(2, 0));
-								break;
-							default:
-								Console.WriteLine($"Unknown command [{Uci.tokens[1]}]");
-								break;
-						}
+							if (!book.AddFile(Uci.GetValue(2, 0)))
+								Console.WriteLine("File not found");
+							break;
+						case "adduci":
+							string movesUci = Uci.GetValue(2, 0);
+							book.AddUci(movesUci);
+							break;
+						case "save":
+							book.SaveToFile(Uci.GetValue(2, 0));
+							break;
+						default:
+							Console.WriteLine($"Unknown command [{Uci.tokens[1]}]");
+							break;
+					}
 					continue;
 				}
 				if ((Uci.command != "go") && (engineName != ""))
