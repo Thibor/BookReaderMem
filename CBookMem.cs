@@ -204,6 +204,7 @@ namespace NSProgram
    0x31D71DCE64B2C310, 0xF165B587DF898190, 0xA57E6339DD2CF3A0, 0x1EF6E6DBB1961EC9,
    0x70CC73D90BC26E24, 0xE21A6B35DF0C3AD7, 0x003A93D8B2806962, 0x1C99DED33CB890A1,
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
+		const int randMax = 9;
 		public const string name = "BookReaderMem";
 		public const string version = "2021-03-02";
 		public string fileShortName = "Book";
@@ -211,6 +212,18 @@ namespace NSProgram
 		public static CChess chess = new CChess();
 		readonly int[] arrAge = new int[0x100];
 		readonly CRecList recList = new CRecList();
+
+		int AgeMax()
+		{
+			double ageAvg = recList.Count / 256.0 + 1;
+			return Convert.ToInt32(ageAvg + ageAvg / (2 * (randMax + 1)));
+		}
+
+		public void Clear()
+		{
+			recList.Clear();
+			ShowCountMoves();
+		}
 
 		string GetHeader()
 		{
@@ -248,10 +261,12 @@ namespace NSProgram
 						else
 							while (reader.BaseStream.Position != reader.BaseStream.Length)
 							{
-								CRec rec = new CRec();
-								rec.hash = reader.ReadUInt64();
-								rec.mat = reader.ReadSByte();
-								rec.age = reader.ReadByte();
+								CRec rec = new CRec
+								{
+									hash = reader.ReadUInt64(),
+									mat = reader.ReadSByte(),
+									age = reader.ReadByte()
+								};
 								arrAge[rec.age]++;
 								recList.Add(rec);
 							}
@@ -275,12 +290,11 @@ namespace NSProgram
 			string ext = Path.GetExtension(path);
 			if (String.IsNullOrEmpty(ext))
 				path += defExt;
-			int randMax = 5;
 			int rand = CChess.random.Next(randMax + 1);
-			double memOptimal = recList.Count / 255.0;
+			double ageMax = AgeMax();
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0xff; n > 0; n--)
-				arrAct[n] = arrAge[n] > memOptimal;
+				arrAct[n] = arrAge[n] > ageMax;
 			FileStream fs = null;
 			try
 			{
@@ -372,9 +386,11 @@ namespace NSProgram
 				string m = moves[n];
 				chess.MakeMove(m);
 				int mate = GetMate(n, count);
-				CRec rec = new CRec();
-				rec.hash = GetHash();
-				rec.mat = MateToMat(mate);
+				CRec rec = new CRec
+				{
+					hash = GetHash(),
+					mat = MateToMat(mate)
+				};
 				if (IsWinner(n, count))
 					recList.AddRec(rec);
 				else if (update)
@@ -443,10 +459,12 @@ namespace NSProgram
 				CRec rec = recList.GetRec(hash);
 				if (rec != null)
 				{
-					CEmo emo = new CEmo();
-					emo.emo = m;
-					emo.mat = rec.mat;
-					emo.age = rec.age;
+					CEmo emo = new CEmo
+					{
+						emo = m,
+						mat = rec.mat,
+						age = rec.age
+					};
 					emoList.Add(emo);
 				}
 				chess.UnmakeMove(m);
@@ -455,31 +473,30 @@ namespace NSProgram
 			return emoList;
 		}
 
-		public string GetMove()
+		public string GetMove(int rnd)
 		{
 			CEmoList emoList = GetEmoList();
-			if (emoList.Count > 0)
+			CEmo bst = emoList.GetRnd(rnd);
+			if (bst != null)
 			{
-				CEmo emo = emoList[0];
-				string umo = chess.EmoToUmo(emo.emo);
-				int mate = MatToMate(emo.mat);
-				Console.WriteLine($"info string book {umo} {mate:+#} ({emoList.Count})");
+				string umo = chess.EmoToUmo(bst.emo);
+				int mate = MatToMate(bst.mat);
+				Console.WriteLine($"info string book {umo} {mate:+#;-#;0} ({emoList.Count})");
 				return umo;
 			}
 			return "";
 		}
 
-		public void ShowLevel(int lev,int len)
+		public void ShowLevel(int lev, int len)
 		{
-			Console.WriteLine(String.Format("{0,4} {1,"+len+"}",lev, arrAge[lev]));
+			Console.WriteLine(String.Format("{0,4} {1," + len + "}", lev, arrAge[lev]));
 		}
 
 		public void InfoStructure()
 		{
 			int l = recList.Count.ToString().Length;
 			int ageAvg = recList.Count / 0x100;
-			double ageMax = recList.Count / 255.0;
-			Console.WriteLine($"moves {recList.Count:N0} avg {ageAvg:N0} max {ageMax:N0}");
+			Console.WriteLine($"moves {recList.Count:N0} avg {ageAvg:N0} max {AgeMax():N0}");
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
 			for (int n = 0xff; n >= 0; n -= 0x20)
@@ -490,15 +507,24 @@ namespace NSProgram
 		public void InfoMoves(string moves)
 		{
 			chess.SetFen();
-			chess.MakeMoves(moves);
-			CEmoList el = GetEmoList();
-			Console.WriteLine("id move  wage age");
-			Console.WriteLine();
-			int i = 1;
-			foreach (CEmo e in el)
+			if (!chess.MakeMoves(moves))
+				Console.WriteLine("wrong moves");
+			else
 			{
-				string umo = chess.EmoToUmo(e.emo);
-				Console.WriteLine(String.Format("{0,2} {1,-4} {2,5} {3,3}",i++,umo, e.mat,e.age));
+				CEmoList el = GetEmoList();
+				if (el.Count == 0)
+					Console.WriteLine("no moves found");
+				else
+				{
+					Console.WriteLine("id move  wage age");
+					Console.WriteLine();
+					int i = 1;
+					foreach (CEmo e in el)
+					{
+						string umo = chess.EmoToUmo(e.emo);
+						Console.WriteLine(String.Format("{0,2} {1,-4} {2,5} {3,3}", i++, umo, e.mat, e.age));
+					}
+				}
 			}
 		}
 

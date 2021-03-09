@@ -27,9 +27,9 @@ namespace NSProgram
 				if (r.hash == rec.hash)
 				{
 					if (r.mat > rec.mat)
-						r.mat--;
+						r.mat = (sbyte)(r.mat - (r.mat - rec.mat) >> 4 - 1);
 					if (r.mat < rec.mat)
-						r.mat++;
+						r.mat = (sbyte)(r.mat + (rec.mat - r.mat) >> 4 + 1);
 					r.age = 0xff;
 				}
 				else
@@ -39,12 +39,12 @@ namespace NSProgram
 
 		public void RecDelete(int count)
 		{
-			if ((count == 0)||(count >= Count))
+			if ((count == 0) || (count >= Count))
 				Clear();
 			else
 			{
 				SortMem();
-				RemoveRange(Count-count,count);
+				RemoveRange(Count - count, count);
 				SortHash();
 			}
 		}

@@ -14,6 +14,7 @@ namespace NSProgram
 		{
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			bool isWritable = false;
+			int rnd = 0;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
 			CChess chess = CBookMem.chess;
@@ -29,6 +30,7 @@ namespace NSProgram
 					case "-bn":
 					case "-ef":
 					case "-ea":
+					case "-rnd":
 						ax = ac;
 						break;
 					case "-w":
@@ -46,6 +48,9 @@ namespace NSProgram
 								break;
 							case "-ea":
 								listEa.Add(ac);
+								break;
+							case "-rnd":
+								rnd = int.TryParse(ac, out int r) ? r : 0;
 								break;
 						}
 						break;
@@ -81,8 +86,9 @@ namespace NSProgram
 				{
 					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
-					Console.WriteLine("book delete [number] - clear all moves from the book, or delete number of moves");
+					Console.WriteLine("book delete [number x] - delete x number of moves from the book");
 					Console.WriteLine("book addfile [filename].[mem] - add moves to the book from file");
+					Console.WriteLine("book clear - clear all moves from the book");
 					continue;
 				}
 				Uci.SetMsg(msg);
@@ -90,20 +96,6 @@ namespace NSProgram
 				{
 					switch (Uci.tokens[1])
 					{
-						case "load":
-							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
-								Console.WriteLine("File not found");
-							break;
-						case "delete":
-							int count = Uci.GetInt(2);
-							book.Delete(count);
-							break;
-						case "moves":
-							book.InfoMoves(Uci.GetValue(2, 0));
-							break;
-						case "structure":
-							book.InfoStructure();
-							break;
 						case "addfile":
 							if (!book.AddFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
@@ -111,6 +103,23 @@ namespace NSProgram
 						case "adduci":
 							string movesUci = Uci.GetValue(2, 0);
 							book.AddUci(movesUci);
+							break;
+						case "clear":
+							book.Clear();
+							break;
+						case "delete":
+							int count = Uci.GetInt(2);
+							book.Delete(count);
+							break;
+						case "load":
+							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
+								Console.WriteLine("File not found");
+							break;
+						case "moves":
+							book.InfoMoves(Uci.GetValue(2, 0));
+							break;
+						case "structure":
+							book.InfoStructure();
 							break;
 						case "save":
 							book.SaveToFile(Uci.GetValue(2, 0));
@@ -151,7 +160,7 @@ namespace NSProgram
 						}
 						break;
 					case "go":
-						string move = book.GetMove();
+						string move = book.GetMove(rnd);
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
 						else if (engineName == "")

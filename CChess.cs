@@ -738,11 +738,13 @@ namespace NSChess
 			return emo;
 		}
 
-		public void MakeMoves(string moves)
+		public bool MakeMoves(string moves)
 		{
 			string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 			foreach (string m in am)
-				MakeMove(m);
+				if(MakeMove(m)==0)
+					return false;
+			return true;
 		}
 
 		public void MakeMove(int move)
