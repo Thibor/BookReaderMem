@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using NSUci;
-using NSChess;
 
 namespace NSProgram
 {
@@ -13,11 +12,18 @@ namespace NSProgram
 		static void Main(string[] args)
 		{
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			/// <summary>
+			/// Book can write new moves.
+			/// </summary>
 			bool isWritable = false;
+			/// <summary>
+			/// Load Before Add new moves.
+			/// </summary>
+			bool lba = false;
 			int rnd = 0;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
-			CChess chess = CBookMem.chess;
+			CChessExt chess = CBookMem.chess;
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
@@ -36,6 +42,10 @@ namespace NSProgram
 					case "-w":
 						ax = ac;
 						isWritable = true;
+						break;
+					case "-lba":
+						ax = ac;
+						lba = true;
 						break;
 					default:
 						switch (ax)
@@ -96,20 +106,25 @@ namespace NSProgram
 				{
 					switch (Uci.tokens[1])
 					{
+						case "addfen":
+							if (!book.AddFen(Uci.GetValue(2, 0)))
+								Console.WriteLine("Wrong fen");
+							break;
 						case "addfile":
 							if (!book.AddFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							break;
 						case "adduci":
-							string movesUci = Uci.GetValue(2, 0);
-							book.AddUci(movesUci);
+							if (!book.AddUci(Uci.GetValue(2, 0)))
+								Console.WriteLine("Wrong uci moves");
 							break;
 						case "clear":
 							book.Clear();
+							Console.WriteLine("Book is empty");
 							break;
 						case "delete":
-							int count = Uci.GetInt(2);
-							book.Delete(count);
+							int c = book.Delete(Uci.GetInt(2));
+							Console.WriteLine($"{c:N0} moves was deleted");
 							break;
 						case "load":
 							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
@@ -122,7 +137,10 @@ namespace NSProgram
 							book.InfoStructure();
 							break;
 						case "save":
-							book.SaveToFile(Uci.GetValue(2, 0));
+							if (book.SaveToFile(Uci.GetValue(2, 0)))
+								Console.WriteLine("Save was successful");
+							else
+								Console.WriteLine("Writing to the file has failed");
 							break;
 						default:
 							Console.WriteLine($"Unknown command [{Uci.tokens[1]}]");
@@ -148,13 +166,15 @@ namespace NSProgram
 							{
 								string m = Uci.tokens[n];
 								movesUci.Add(m);
-								chess.MakeMove(m);
+								chess.MakeMove(m, out _);
 							}
 						}
 						if (isWritable && (fen == String.Empty) && chess.Is2ToEnd(out string myMove, out string enMove))
 						{
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
+							if (lba)
+								book.LoadFromFile();
 							book.AddUci(movesUci);
 							book.SaveToFile();
 						}

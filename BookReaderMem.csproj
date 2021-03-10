@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="CChess.cs" />
     <Compile Include="CBookMem.cs" />
+    <Compile Include="CChessExt.cs" />
     <Compile Include="CEmoList.cs" />
     <Compile Include="CRecList.cs" />
     <Compile Include="CUci.cs" />

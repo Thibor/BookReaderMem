@@ -37,8 +37,9 @@ namespace NSProgram
 			}
 		}
 
-		public void RecDelete(int count)
+		public int RecDelete(int count)
 		{
+			int c = Count;
 			if ((count == 0) || (count >= Count))
 				Clear();
 			else
@@ -47,6 +48,7 @@ namespace NSProgram
 				RemoveRange(Count - count, count);
 				SortHash();
 			}
+			return c - Count;
 		}
 
 		public bool RecUpdate(CRec rec)

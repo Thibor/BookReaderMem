@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using NSChess;
 
 namespace NSProgram
 {
@@ -205,11 +204,12 @@ namespace NSProgram
    0x70CC73D90BC26E24, 0xE21A6B35DF0C3AD7, 0x003A93D8B2806962, 0x1C99DED33CB890A1,
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		const int randMax = 9;
+		string path = String.Empty;
 		public const string name = "BookReaderMem";
 		public const string version = "2021-03-02";
 		public string fileShortName = "Book";
 		public const string defExt = ".mem";
-		public static CChess chess = new CChess();
+		public static CChessExt chess = new CChessExt();
 		readonly int[] arrAge = new int[0x100];
 		readonly CRecList recList = new CRecList();
 
@@ -222,7 +222,6 @@ namespace NSProgram
 		public void Clear()
 		{
 			recList.Clear();
-			ShowCountMoves();
 		}
 
 		string GetHeader()
@@ -230,11 +229,17 @@ namespace NSProgram
 			return $"{name} {version}";
 		}
 
-		public bool LoadFromFile(string path)
+		public bool LoadFromFile(string fn)
 		{
-			fileShortName = Path.GetFileNameWithoutExtension(path);
+			path = fn;
+			fileShortName = Path.GetFileNameWithoutExtension(fn);
 			recList.Clear();
-			return AddFile(path);
+			return AddFile(fn);
+		}
+
+		public bool LoadFromFile()
+		{
+			return LoadFromFile(path);
 		}
 
 		void ShowCountMoves()
@@ -277,6 +282,55 @@ namespace NSProgram
 			return false;
 		}
 
+		public bool AddFen(string fen)
+		{
+			if (chess.SetFen(fen))
+			{
+				CRec rec = new CRec
+				{
+					hash = GetHash()
+				};
+				recList.AddRec(rec);
+				return true;
+			}
+			return false;
+		}
+
+		public bool AddUci(string[] moves)
+		{
+			bool update = true;
+			int count = moves.Length;
+			chess.SetFen();
+			for (int n = 0; n < moves.Length; n++)
+			{
+				string m = moves[n];
+				if (!chess.MakeMove(m, out _))
+					return false;
+				int mate = GetMate(n, count);
+				CRec rec = new CRec
+				{
+					hash = GetHash(),
+					mat = MateToMat(mate)
+				};
+				if (mate > 0)
+					recList.AddRec(rec);
+				else if (update)
+					update = recList.RecUpdate(rec);
+
+			}
+			return true;
+		}
+
+		public bool AddUci(string moves)
+		{
+			return AddUci(moves.Split(' '));
+		}
+
+		public bool AddUci(List<string> moves)
+		{
+			return AddUci(moves.ToArray());
+		}
+
 		void RefreshAge()
 		{
 			for (int n = 0; n < 0x100; n++)
@@ -285,22 +339,25 @@ namespace NSProgram
 				arrAge[rec.age]++;
 		}
 
-		public void SaveToFile(string path)
+		public bool SaveToFile(string path)
 		{
 			string ext = Path.GetExtension(path);
 			if (String.IsNullOrEmpty(ext))
 				path += defExt;
-			int rand = CChess.random.Next(randMax + 1);
+			int rand = CChessExt.random.Next(randMax + 1);
 			double ageMax = AgeMax();
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0xff; n > 0; n--)
 				arrAct[n] = arrAge[n] > ageMax;
-			FileStream fs = null;
+			FileStream fs;
 			try
 			{
 				fs = File.Open(path, FileMode.Create, FileAccess.Write);
 			}
-			catch { }
+			catch
+			{
+				return false;
+			}
 			if (fs != null)
 				using (BinaryWriter writer = new BinaryWriter(fs))
 				{
@@ -323,14 +380,14 @@ namespace NSProgram
 						lastHash = rec.hash;
 					}
 				}
+			return true;
 		}
 
-		public void Delete(int c)
+		public int Delete(int c)
 		{
-			InfoStructure();
-			recList.RecDelete(c);
+			c = recList.RecDelete(c);
 			RefreshAge();
-			InfoStructure();
+			return c;
 		}
 
 		public void SaveToFile()
@@ -376,39 +433,6 @@ namespace NSProgram
 			return mate;
 		}
 
-		public void AddUci(string[] moves)
-		{
-			bool update = true;
-			int count = moves.Length;
-			chess.SetFen();
-			for (int n = 0; n < moves.Length; n++)
-			{
-				string m = moves[n];
-				chess.MakeMove(m);
-				int mate = GetMate(n, count);
-				CRec rec = new CRec
-				{
-					hash = GetHash(),
-					mat = MateToMat(mate)
-				};
-				if (IsWinner(n, count))
-					recList.AddRec(rec);
-				else if (update)
-					update = recList.RecUpdate(rec);
-
-			}
-		}
-
-		public void AddUci(string moves)
-		{
-			AddUci(moves.Split(' '));
-		}
-
-		public void AddUci(List<string> moves)
-		{
-			AddUci(moves.ToArray());
-		}
-
 		public ulong GetHash()
 		{
 			string fen = chess.GetFen();
@@ -418,12 +442,12 @@ namespace NSProgram
 				for (int x = 0; x < 8; x++)
 				{
 					int n = y * 8 + x;
-					int fr = CChess.arrField[n];
+					int fr = CChessExt.arrField[n];
 					int field = chess.g_board[fr];
 					int rank = (field & 7) - 1;
 					if (rank < 0)
 						continue;
-					int col = (field & CChess.colorWhite) > 0 ? 1 : 0;
+					int col = (field & CChessExt.colorWhite) > 0 ? 1 : 0;
 					int cy = y;
 					if (chess.whiteTurn)
 					{
