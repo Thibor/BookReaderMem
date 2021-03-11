@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using NSChess;
 
 namespace NSProgram
 {
@@ -207,16 +208,16 @@ namespace NSProgram
 		string path = String.Empty;
 		public const string name = "BookReaderMem";
 		public const string version = "2021-03-02";
-		public string fileShortName = "Book";
+		public string fileShortName = String.Empty;
 		public const string defExt = ".mem";
 		public static CChessExt chess = new CChessExt();
 		readonly int[] arrAge = new int[0x100];
-		readonly CRecList recList = new CRecList();
+		public CRecList recList = new CRecList();
 
 		int AgeMax()
 		{
 			double ageAvg = recList.Count / 256.0 + 1;
-			return Convert.ToInt32(ageAvg + ageAvg / (2 * (randMax + 1)));
+			return Convert.ToInt32(ageAvg + ageAvg / (randMax + 1));
 		}
 
 		public void Clear()
@@ -229,12 +230,17 @@ namespace NSProgram
 			return $"{name} {version}";
 		}
 
-		public bool LoadFromFile(string fn)
+		string GetFileName()
 		{
-			path = fn;
-			fileShortName = Path.GetFileNameWithoutExtension(fn);
+			return $"{fileShortName}{defExt}";
+		}
+
+		public bool LoadFromFile(string p)
+		{
+			path = p;
+			fileShortName = Path.GetFileNameWithoutExtension(p);
 			recList.Clear();
-			return AddFile(fn);
+			return AddFile(p);
 		}
 
 		public bool LoadFromFile()
@@ -242,44 +248,63 @@ namespace NSProgram
 			return LoadFromFile(path);
 		}
 
-		void ShowCountMoves()
+		public bool AddFile(string p)
 		{
-			Console.WriteLine($"info string book {recList.Count:N0} moves");
-		}
-
-		public bool AddFile(string path)
-		{
-			if (File.Exists(path))
+			if (File.Exists(p))
 			{
-				FileStream fs = null;
-				try
-				{
-					fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-				}
-				catch { }
-				if (fs != null)
-					using (BinaryReader reader = new BinaryReader(fs))
-					{
-						string header = GetHeader();
-						if (reader.ReadString() != header)
-							Console.WriteLine($"This program only supports version  [{header}]");
-						else
-							while (reader.BaseStream.Position != reader.BaseStream.Length)
-							{
-								CRec rec = new CRec
-								{
-									hash = reader.ReadUInt64(),
-									mat = reader.ReadSByte(),
-									age = reader.ReadByte()
-								};
-								arrAge[rec.age]++;
-								recList.Add(rec);
-							}
-					}
-				ShowCountMoves();
-				return true;
+				if(String.IsNullOrEmpty(fileShortName))
+					fileShortName = Path.GetFileNameWithoutExtension(p);
+				string ext = Path.GetExtension(p);
+				if (ext == defExt)
+					return AddFileMem(p);
+				if (ext == ".uci")
+					return AddFileUci(p);
 			}
 			return false;
+		}
+
+		bool AddFileMem(string p)
+		{
+			FileStream fs;
+			try
+			{
+				fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read);
+			}
+			catch
+			{
+				return false;
+			}
+			if (fs != null)
+				using (BinaryReader reader = new BinaryReader(fs))
+				{
+					string header = GetHeader();
+					if (reader.ReadString() != header)
+						Console.WriteLine($"This program only supports version  [{header}]");
+					else
+					{
+						while (reader.BaseStream.Position != reader.BaseStream.Length)
+						{
+							CRec rec = new CRec
+							{
+								hash = reader.ReadUInt64(),
+								mat = reader.ReadSByte(),
+								age = reader.ReadByte()
+							};
+							arrAge[rec.age]++;
+							recList.Add(rec);
+						}
+						return true;
+					}
+				}
+			return false;
+		}
+
+		bool AddFileUci(string p)
+		{
+			string[] lines = File.ReadAllLines(p);
+			foreach (string uci in lines)
+				AddUci(uci);
+			return true;
 		}
 
 		public bool AddFen(string fen)
@@ -301,22 +326,28 @@ namespace NSProgram
 			bool update = true;
 			int count = moves.Length;
 			chess.SetFen();
+			if (!chess.MakeMoves(moves))
+				return false;
+			CGameState gs = chess.GetGameState();
+			chess.SetFen();
 			for (int n = 0; n < moves.Length; n++)
 			{
 				string m = moves[n];
-				if (!chess.MakeMove(m, out _))
-					return false;
-				int mate = GetMate(n, count);
-				CRec rec = new CRec
+				chess.MakeMove(m, out _);
+				CRec rec = new CRec();
+				rec.hash = GetHash();
+				if (gs == CGameState.mate)
 				{
-					hash = GetHash(),
-					mat = MateToMat(mate)
-				};
-				if (mate > 0)
-					recList.AddRec(rec);
-				else if (update)
-					update = recList.RecUpdate(rec);
+					int mate = GetMate(n, count);
+					rec.mat = MateToMat(mate);
+					if (mate > 0)
+						recList.AddRec(rec);
+					else if (update)
+						update = recList.RecUpdate(rec);
 
+				}
+				else
+					recList.AddRec(rec);
 			}
 			return true;
 		}
@@ -339,11 +370,13 @@ namespace NSProgram
 				arrAge[rec.age]++;
 		}
 
-		public bool SaveToFile(string path)
+		public bool SaveToFile(string p)
 		{
-			string ext = Path.GetExtension(path);
+			if (String.IsNullOrEmpty(p))
+				p = GetFileName();
+			string ext = Path.GetExtension(p);
 			if (String.IsNullOrEmpty(ext))
-				path += defExt;
+				p += defExt;
 			int rand = CChessExt.random.Next(randMax + 1);
 			double ageMax = AgeMax();
 			bool[] arrAct = new bool[0x100];
@@ -352,7 +385,7 @@ namespace NSProgram
 			FileStream fs;
 			try
 			{
-				fs = File.Open(path, FileMode.Create, FileAccess.Write);
+				fs = File.Open(p, FileMode.Create, FileAccess.Write);
 			}
 			catch
 			{

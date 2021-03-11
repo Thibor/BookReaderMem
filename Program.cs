@@ -22,7 +22,7 @@ namespace NSProgram
 			bool lba = false;
 			int rnd = 0;
 			CUci Uci = new CUci();
-			CBookMem book = new CBookMem();
+			CBookMem Book = new CBookMem();
 			CChessExt chess = CBookMem.chess;
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
@@ -86,9 +86,9 @@ namespace NSProgram
 				engineName = "";
 			}
 
-			if (!book.LoadFromFile(bookName))
-				if (!book.LoadFromFile($"{bookName}{CBookMem.defExt}"))
-					Console.WriteLine($"info string missing book [{bookName}]");
+			if (!Book.LoadFromFile(bookName))
+				Book.LoadFromFile($"{bookName}{CBookMem.defExt}");
+			Console.WriteLine($"info string book {Book.recList.Count:N0} moves");
 			while (true)
 			{
 				string msg = Console.ReadLine().Trim();
@@ -97,48 +97,59 @@ namespace NSProgram
 					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
 					Console.WriteLine("book delete [number x] - delete x number of moves from the book");
-					Console.WriteLine("book addfile [filename].[mem] - add moves to the book from file");
+					Console.WriteLine("book addfile [filename].[mem|uci] - add moves to the book from file");
+					Console.WriteLine("book adduci [uci] - add moves in uci format to the book");
+					Console.WriteLine("book addfen [fen] - add position in fen format");
 					Console.WriteLine("book clear - clear all moves from the book");
 					continue;
 				}
 				Uci.SetMsg(msg);
+				int count = Book.recList.Count;
 				if (Uci.command == "book")
 				{
 					switch (Uci.tokens[1])
 					{
 						case "addfen":
-							if (!book.AddFen(Uci.GetValue(2, 0)))
+							if (Book.AddFen(Uci.GetValue(2, 0)))
+								Console.WriteLine("Fen have been added");
+							else
 								Console.WriteLine("Wrong fen");
 							break;
 						case "addfile":
-							if (!book.AddFile(Uci.GetValue(2, 0)))
+							if (!Book.AddFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
+							else
+								Console.WriteLine($"{(Book.recList.Count - count):N0} moves have been added");
 							break;
 						case "adduci":
-							if (!book.AddUci(Uci.GetValue(2, 0)))
+							if (!Book.AddUci(Uci.GetValue(2, 0)))
 								Console.WriteLine("Wrong uci moves");
+							else
+								Console.WriteLine($"{(Book.recList.Count - count):N0} moves have been added");
 							break;
 						case "clear":
-							book.Clear();
+							Book.Clear();
 							Console.WriteLine("Book is empty");
 							break;
 						case "delete":
-							int c = book.Delete(Uci.GetInt(2));
+							int c = Book.Delete(Uci.GetInt(2));
 							Console.WriteLine($"{c:N0} moves was deleted");
 							break;
 						case "load":
-							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
+							if (!Book.LoadFromFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
+							else
+								Console.WriteLine($"{Book.recList.Count:N0} moves in the book");
 							break;
 						case "moves":
-							book.InfoMoves(Uci.GetValue(2, 0));
+							Book.InfoMoves(Uci.GetValue(2, 0));
 							break;
 						case "structure":
-							book.InfoStructure();
+							Book.InfoStructure();
 							break;
 						case "save":
-							if (book.SaveToFile(Uci.GetValue(2, 0)))
-								Console.WriteLine("Save was successful");
+							if (Book.SaveToFile(Uci.GetValue(2, 0)))
+								Console.WriteLine("The book has been saved");
 							else
 								Console.WriteLine("Writing to the file has failed");
 							break;
@@ -174,13 +185,13 @@ namespace NSProgram
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
 							if (lba)
-								book.LoadFromFile();
-							book.AddUci(movesUci);
-							book.SaveToFile();
+								Book.LoadFromFile();
+							Book.AddUci(movesUci);
+							Book.SaveToFile();
 						}
 						break;
 					case "go":
-						string move = book.GetMove(rnd);
+						string move = Book.GetMove(rnd);
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
 						else if (engineName == "")
