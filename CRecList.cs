@@ -37,6 +37,25 @@ namespace NSProgram
 			}
 		}
 
+		public void AddHash(CRec rec)
+		{
+			int index = FindHash(rec.hash);
+			if (index == Count)
+				Add(rec);
+			else
+			{
+				CRec r = this[index];
+				if (r.hash == rec.hash)
+				{
+					if (r.mat < sbyte.MaxValue)
+						r.mat++;
+					r.age = 0xff;
+				}
+				else
+					Insert(index, rec);
+			}
+		}
+
 		public int RecDelete(int count)
 		{
 			int c = Count;

@@ -435,9 +435,10 @@ namespace NSChess
 				moves.Add(fr | (to << 8) | flag);
 		}
 
-		public List<int> GenerateValidMoves(out bool mate)
+		public List<int> GenerateValidMoves(out bool mate, bool checkRepetition = false)
 		{
 			mate = false;
+			int count = 0;
 			List<int> moves = new List<int>(64);
 			List<int> am = GenerateAllMoves(whiteTurn, false);
 			if (!g_inCheck)
@@ -446,10 +447,14 @@ namespace NSChess
 					MakeMove(m);
 					GenerateAllMoves(whiteTurn, true);
 					if (!g_inCheck)
-						moves.Add(m);
+					{
+						count++;
+						if (!checkRepetition || !IsRepetition(0))
+							moves.Add(m);
+					}
 					UnmakeMove(m);
 				}
-			if (moves.Count == 0)
+			if (count == 0)
 			{
 				GenerateAllMoves(!whiteTurn, true);
 				mate = g_inCheck;
@@ -801,12 +806,12 @@ namespace NSChess
 			return GetGameState(out _);
 		}
 
-		bool IsRepetition()
+		bool IsRepetition(int max = 3)
 		{
 			int r = 1;
 			for (int n = undoIndex - 4; n >= undoIndex - g_move50; n -= 2)
 				if (undoStack[n].hash == g_hash)
-					if (++r > 2)
+					if (++r >= max)
 						return true;
 			return false;
 		}

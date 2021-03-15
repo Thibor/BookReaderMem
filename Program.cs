@@ -9,6 +9,7 @@ namespace NSProgram
 {
 	class Program
 	{
+
 		static void Main(string[] args)
 		{
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
@@ -23,7 +24,7 @@ namespace NSProgram
 			int rnd = 0;
 			CUci Uci = new CUci();
 			CBookMem Book = new CBookMem();
-			CChessExt chess = CBookMem.chess;
+			CChessExt Chess = CBookMem.Chess;
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
@@ -92,12 +93,12 @@ namespace NSProgram
 			while (true)
 			{
 				string msg = Console.ReadLine().Trim();
-				if ((msg == "help") || (msg == "book"))
+				if (String.IsNullOrEmpty(msg) || (msg == "help") || (msg == "book"))
 				{
 					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
-					Console.WriteLine("book delete [number x] - delete x number of moves from the book");
-					Console.WriteLine("book addfile [filename].[mem|uci] - add moves to the book from file");
+					Console.WriteLine("book delete [number x] - delete x moves from the book");
+					Console.WriteLine("book addfile [filename].[mem|uci|fen] - add moves to the book from file");
 					Console.WriteLine("book adduci [uci] - add moves in uci format to the book");
 					Console.WriteLine("book addfen [fen] - add position in fen format");
 					Console.WriteLine("book clear - clear all moves from the book");
@@ -164,28 +165,20 @@ namespace NSProgram
 				switch (Uci.command)
 				{
 					case "position":
-						List<string> movesUci = new List<string>();
 						string fen = Uci.GetValue("fen", "moves");
-						chess.SetFen(fen);
-						int lo = Uci.GetIndex("moves", 0);
-						if (lo++ > 0)
+						string moves = Uci.GetValue("moves", "fen");
+						Chess.SetFen(fen);
+						Chess.MakeMoves(moves);
+						if (isWritable && String.IsNullOrEmpty(fen) && Chess.Is2ToEnd(out string myMove, out string enMove))
 						{
-							int hi = Uci.GetIndex("fen", Uci.tokens.Length);
-							if (hi < lo)
-								hi = Uci.tokens.Length;
-							for (int n = lo; n < hi; n++)
-							{
-								string m = Uci.tokens[n];
+							string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+							List<string> movesUci = new List<string>();
+							foreach(string m in am)
 								movesUci.Add(m);
-								chess.MakeMove(m, out _);
-							}
-						}
-						if (isWritable && (fen == String.Empty) && chess.Is2ToEnd(out string myMove, out string enMove))
-						{
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
 							if (lba)
-								Book.LoadFromFile();
+								Book.AddFile(bookName);
 							Book.AddUci(movesUci);
 							Book.SaveToFile();
 						}
