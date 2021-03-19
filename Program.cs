@@ -38,6 +38,7 @@ namespace NSProgram
 					case "-ef":
 					case "-ea":
 					case "-rnd":
+					case "-max":
 						ax = ac;
 						break;
 					case "-w":
@@ -62,6 +63,10 @@ namespace NSProgram
 								break;
 							case "-rnd":
 								rnd = int.TryParse(ac, out int r) ? r : 0;
+								break;
+							case "-max":
+								ac = ac.Replace("K", "000").Replace("M", "000000");
+								Book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
 								break;
 						}
 						break;
@@ -98,7 +103,7 @@ namespace NSProgram
 					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
 					Console.WriteLine("book delete [number x] - delete x moves from the book");
-					Console.WriteLine("book addfile [filename].[mem|uci|fen] - add moves to the book from file");
+					Console.WriteLine("book addfile [filename].[mem|png|uci|fen] - add moves to the book from file");
 					Console.WriteLine("book adduci [uci] - add moves in uci format to the book");
 					Console.WriteLine("book addfen [fen] - add position in fen format");
 					Console.WriteLine("book clear - clear all moves from the book");

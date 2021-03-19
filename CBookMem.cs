@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text.RegularExpressions;
 using NSChess;
 
 namespace NSProgram
@@ -206,6 +208,7 @@ namespace NSProgram
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		const int randMax = 9;
 		string path = String.Empty;
+		public int maxRecords = 0;
 		public const string name = "BookReaderMem";
 		public const string version = "2021-03-02";
 		public string fileShortName = String.Empty;
@@ -257,6 +260,8 @@ namespace NSProgram
 				string ext = Path.GetExtension(p);
 				if (ext == defExt)
 					return AddFileMem(p);
+				if (ext == ".pgn")
+					return AddFilePgn(p);
 				if (ext == ".uci")
 					return AddFileUci(p);
 				if (ext == ".fen")
@@ -316,6 +321,42 @@ namespace NSProgram
 			return true;
 		}
 
+		bool AddFilePgn(string p)
+		{
+			List<string> listPgn = File.ReadAllLines(p).ToList();
+			string movesUci = String.Empty;
+			Chess.SetFen();
+			foreach (string m in listPgn)
+			{
+				string cm = m.Trim();
+				if (String.IsNullOrEmpty(cm))
+					continue;
+				if (cm[0] == '[')
+					continue;
+				cm = Regex.Replace(cm, @"\.(?! |$)", ". ");
+				if (cm.StartsWith("1. "))
+				{
+					AddUci(movesUci);
+					movesUci = String.Empty;
+					Chess.SetFen();
+				}
+				string[] arrMoves = cm.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+				foreach (string san in arrMoves)
+				{
+					if (Char.IsDigit(san[0]))
+						continue;
+					string umo = Chess.SanToUmo(san);
+					if (umo == String.Empty)
+						break;
+					movesUci += $" {umo}";
+					int emo = Chess.UmoToEmo(umo);
+					Chess.MakeMove(emo);
+				}
+			}
+			AddUci(movesUci);
+			return true;
+		}
+
 		public bool AddFen(string fen)
 		{
 			if (Chess.SetFen(fen))
@@ -363,7 +404,7 @@ namespace NSProgram
 
 		public bool AddUci(string moves)
 		{
-			return AddUci(moves.Split(' '));
+			return AddUci(moves.Trim().Split(' '));
 		}
 
 		public bool AddUci(List<string> moves)
@@ -386,6 +427,8 @@ namespace NSProgram
 			string ext = Path.GetExtension(p);
 			if (String.IsNullOrEmpty(ext))
 				p += defExt;
+			if ((maxRecords > 0) && (recList.Count > maxRecords))
+				Delete(recList.Count - maxRecords);
 			int rand = CChessExt.random.Next(randMax + 1);
 			double ageMax = AgeMax();
 			RefreshAge();

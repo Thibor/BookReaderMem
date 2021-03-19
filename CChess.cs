@@ -177,6 +177,8 @@ namespace NSChess
 					}
 				}
 			}
+			if (!uniFile && !uniRank)
+				uniRank = true;
 			if (isAttack && (pieceFr == piecePawn))
 				uniFile = false;
 			string faf = uniFile ? "" : umo.Substring(0, 1);
@@ -212,7 +214,8 @@ namespace NSChess
 				string umo = EmoToUmo(imo);
 				if (umo == san)
 					return umo;
-				if (UmoToSan(umo).Trim(charsToTrim) == san)
+				string cs = UmoToSan(umo).Trim(charsToTrim);
+				if (cs == san)
 					return umo;
 			}
 			return "";
