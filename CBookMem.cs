@@ -217,14 +217,9 @@ namespace NSProgram
 		readonly int[] arrAge = new int[0x100];
 		public CRecList recList = new CRecList();
 
-		void ShowProgress(double p)
+		public void ShowMoves()
 		{
-			Console.Write($"\r{p}%");
-		}
-
-		void ShowMoves(int m)
-		{
-			Console.Write($"\r{m} moves");
+			Console.Write($"\r{recList.Count} moves");
 		}
 
 		int AgeMax()
@@ -347,7 +342,7 @@ namespace NSProgram
 				if (cm.StartsWith("1. "))
 				{
 					AddUci(movesUci);
-					ShowMoves(recList.Count);
+					ShowMoves();
 					movesUci = String.Empty;
 					Chess.SetFen();
 				}
@@ -365,8 +360,7 @@ namespace NSProgram
 				}
 			}
 			AddUci(movesUci);
-			ShowMoves(recList.Count);
-			Console.WriteLine();
+			ShowMoves();
 			return true;
 		}
 

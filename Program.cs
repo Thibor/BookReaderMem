@@ -145,7 +145,10 @@ namespace NSProgram
 							if (!Book.LoadFromFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							else
-								Console.WriteLine($"{Book.recList.Count:N0} moves in the book");
+							{
+								Book.ShowMoves();
+								Console.WriteLine();
+							}
 							break;
 						case "moves":
 							Book.InfoMoves(Uci.GetValue(2, 0));
