@@ -125,7 +125,10 @@ namespace NSProgram
 							if (!Book.AddFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							else
-								Console.WriteLine($"{(Book.recList.Count - count):N0} moves have been added");
+							{
+								Book.ShowMoves();
+								Console.WriteLine();
+							}
 							break;
 						case "adduci":
 							if (!Book.AddUci(Uci.GetValue(2, 0)))
