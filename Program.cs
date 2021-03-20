@@ -38,7 +38,6 @@ namespace NSProgram
 					case "-ef":
 					case "-ea":
 					case "-rnd":
-					case "-max":
 						ax = ac;
 						break;
 					case "-w":
@@ -64,7 +63,7 @@ namespace NSProgram
 							case "-rnd":
 								rnd = int.TryParse(ac, out int r) ? r : 0;
 								break;
-							case "-max":
+							case "-w":
 								ac = ac.Replace("K", "000").Replace("M", "000000");
 								Book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
 								break;
@@ -125,10 +124,7 @@ namespace NSProgram
 							if (!Book.AddFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							else
-							{
-								Book.ShowMoves();
-								Console.WriteLine();
-							}
+								Book.ShowMoves(true);
 							break;
 						case "adduci":
 							if (!Book.AddUci(Uci.GetValue(2, 0)))
@@ -148,10 +144,7 @@ namespace NSProgram
 							if (!Book.LoadFromFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							else
-							{
-								Book.ShowMoves();
-								Console.WriteLine();
-							}
+								Book.ShowMoves(true);
 							break;
 						case "moves":
 							Book.InfoMoves(Uci.GetValue(2, 0));
@@ -184,7 +177,7 @@ namespace NSProgram
 						{
 							string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 							List<string> movesUci = new List<string>();
-							foreach(string m in am)
+							foreach (string m in am)
 								movesUci.Add(m);
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);

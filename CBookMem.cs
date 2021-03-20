@@ -217,9 +217,11 @@ namespace NSProgram
 		readonly int[] arrAge = new int[0x100];
 		public CRecList recList = new CRecList();
 
-		public void ShowMoves()
+		public void ShowMoves(bool last = false)
 		{
 			Console.Write($"\r{recList.Count} moves");
+			if (last)
+				Console.WriteLine();
 		}
 
 		int AgeMax()
