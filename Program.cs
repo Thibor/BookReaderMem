@@ -99,7 +99,7 @@ namespace NSProgram
 				string msg = Console.ReadLine().Trim();
 				if (String.IsNullOrEmpty(msg) || (msg == "help") || (msg == "book"))
 				{
-					Console.WriteLine("book load [filename].[mem] - clear and add moves from file");
+					Console.WriteLine("book load [filename].[mem|pgn|uci|fen] - clear and add moves from file");
 					Console.WriteLine("book save [filename].[mem] - save book to the file");
 					Console.WriteLine("book delete [number x] - delete x moves from the book");
 					Console.WriteLine("book addfile [filename].[mem|png|uci|fen] - add moves to the book from file");

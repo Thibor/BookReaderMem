@@ -208,6 +208,7 @@ namespace NSProgram
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		const int randMax = 9;
 		string path = String.Empty;
+		public int errors = 0;
 		public int maxRecords = 0;
 		public const string name = "BookReaderMem";
 		public const string version = "2021-03-02";
@@ -221,7 +222,12 @@ namespace NSProgram
 		{
 			Console.Write($"\r{recList.Count} moves");
 			if (last)
+			{
 				Console.WriteLine();
+				if (errors > 0)
+					Console.WriteLine($"{errors} errors");
+				errors = 0;
+			}
 		}
 
 		int AgeMax()
@@ -355,7 +361,10 @@ namespace NSProgram
 						continue;
 					string umo = Chess.SanToUmo(san);
 					if (umo == String.Empty)
+					{
+						errors++;
 						break;
+					}
 					movesUci += $" {umo}";
 					int emo = Chess.UmoToEmo(umo);
 					Chess.MakeMove(emo);

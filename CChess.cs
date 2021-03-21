@@ -160,8 +160,8 @@ namespace NSChess
 			if ((flags & moveflagCastleQueen) > 0)
 				return "O-O-O";
 			List<int> moves = GenerateValidMoves(out _);
-			bool uniRank = false;
-			bool uniFile = false;
+			bool showRank = false;
+			bool showFile = false;
 			foreach (int m in moves)
 			{
 				int f = m & 0xff;
@@ -171,18 +171,18 @@ namespace NSChess
 					if ((piece == pieceFr) && ((m & 0xff00) == (emo & 0xff00)))
 					{
 						if ((m & 0xf0) != (emo & 0xf0))
-							uniRank = true;
+							showRank = true;
 						if ((m & 0xf) != (emo & 0xf))
-							uniFile = true;
+							showFile = true;
 					}
 				}
 			}
 			if (isAttack && (pieceFr == piecePawn))
-				uniFile = true;
-			if (uniFile && uniRank)
-				uniRank = false;
-			string faf = uniFile ? umo.Substring(0, 1) : String.Empty;
-			string far = uniRank ? umo.Substring(1, 1) : String.Empty;
+				showFile = true;
+			if (showFile && showRank)
+				showRank = false;
+			string faf = showFile ? umo.Substring(0, 1) : String.Empty;
+			string far = showRank ? umo.Substring(1, 1) : String.Empty;
 			string fb = umo.Substring(2, 2);
 			string attack = isAttack ? "x" : "";
 			string promo = "";
@@ -214,8 +214,7 @@ namespace NSChess
 				string umo = EmoToUmo(imo);
 				if (umo == san)
 					return umo;
-				string cs = UmoToSan(umo).Trim(charsToTrim);
-				if (cs == san)
+				if (UmoToSan(umo).Trim(charsToTrim) == san)
 					return umo;
 			}
 			return "";
@@ -438,7 +437,7 @@ namespace NSChess
 				moves.Add(fr | (to << 8) | flag);
 		}
 
-		public List<int> GenerateValidMoves(out bool mate, bool checkRepetition = false)
+		public List<int> GenerateValidMoves(out bool mate, bool norep = false)
 		{
 			mate = false;
 			int count = 0;
@@ -452,7 +451,7 @@ namespace NSChess
 					if (!g_inCheck)
 					{
 						count++;
-						if (!checkRepetition || !IsRepetition(0))
+						if (!norep || !IsRepetition())
 							moves.Add(m);
 					}
 					UnmakeMove(m);
@@ -809,12 +808,12 @@ namespace NSChess
 			return GetGameState(out _);
 		}
 
-		bool IsRepetition(int max = 3)
+		bool IsRepetition()
 		{
 			int r = 1;
 			for (int n = undoIndex - 4; n >= undoIndex - g_move50; n -= 2)
 				if (undoStack[n].hash == g_hash)
-					if (++r >= max)
+					if (++r > 2)
 						return true;
 			return false;
 		}
