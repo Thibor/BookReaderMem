@@ -21,6 +21,8 @@ namespace NSProgram
 			/// Load Before Add new moves.
 			/// </summary>
 			bool lba = false;
+			int bookLimitW = 0;
+			int bookLimitR = 0;
 			int rnd = 0;
 			CUci Uci = new CUci();
 			CBookMem Book = new CBookMem();
@@ -38,6 +40,8 @@ namespace NSProgram
 					case "-ef":
 					case "-ea":
 					case "-rnd":
+					case "-lr":
+					case "-lw":
 						ax = ac;
 						break;
 					case "-w":
@@ -66,6 +70,12 @@ namespace NSProgram
 							case "-w":
 								ac = ac.Replace("K", "000").Replace("M", "000000");
 								Book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
+								break;
+							case "-lr":
+								bookLimitR = int.TryParse(ac, out int lr) ? lr : 0;
+								break;
+							case "-lw":
+								bookLimitW = int.TryParse(ac, out int lw) ? lw : 0;
 								break;
 						}
 						break;
@@ -106,6 +116,8 @@ namespace NSProgram
 					Console.WriteLine("book adduci [uci] - add moves in uci format to the book");
 					Console.WriteLine("book addfen [fen] - add position in fen format");
 					Console.WriteLine("book clear - clear all moves from the book");
+					Console.WriteLine("book moves [uci] - make sequence of moves in uci format and shows possible continuations");
+					Console.WriteLine("book structure - show structure of current book");
 					continue;
 				}
 				Uci.SetMsg(msg);
@@ -181,14 +193,19 @@ namespace NSProgram
 								movesUci.Add(m);
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
+							int c = bookLimitW > 0 ? bookLimitW : movesUci.Count;
+							List<string> l = movesUci.GetRange(0, c);
+							string lm = String.Join(" ", l);
 							if (lba)
 								Book.AddFile(bookName);
-							Book.AddUci(movesUci);
+							Book.AddUci(lm);
 							Book.SaveToFile();
 						}
 						break;
 					case "go":
-						string move = Book.GetMove(rnd);
+						string move = String.Empty;
+						if ((Chess.g_moveNumber < bookLimitR) || (bookLimitR == 0))
+							move = Book.GetMove(rnd);
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
 						else if (engineName == "")

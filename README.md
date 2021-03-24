@@ -9,17 +9,20 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **-ef** chess Engine File name<br/>
 **-ea** chess Engine Arguments<br/>
 **-w** add new moves to the book<br/>
+**-lr** Limit maximum ply depth when Read from book (default 0) 0 means no limit<br/>
+**-lw** Limit maximum ply depth when Write to book (default 0) 0 means no limit<br/>
 
 ## Console commands
 
-**book load** [filename].[mem] - clear and add<br/>
+**book load** [filename].[mem|pgn|uci|fen] - clear and add<br/>
 **book save** [filename].[mem] - save book to the file<br/>
 **book delete** [number x] - delete x rare used moves from the book<br/>
-**book addfile** [filename].[mem] - adds moves from another book<br/>
-**book adduci** [filename].[mem] - adds a sequence of moves in uci format<br/>
+**book addfile** [filename].[mem|pgn|uci|fen] - adds moves from another book<br/>
+**book adduci** [uci] - adds a sequence of moves in uci format<br/>
+**book addfen** [fen] - add position in fen format<br/>
 **book clear** - clear all moves from the book<br/>
-**book moves** [uci moves] - make sequence of moves in uci format and shows possible continuations<br/>
-**book structure** - show structure of the book<br/>
+**book moves** [uci] - make sequence of moves in uci format and shows possible continuations<br/>
+**book structure** - show structure of current book<br/>
 
 ### Examples
 
