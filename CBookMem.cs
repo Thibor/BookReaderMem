@@ -211,7 +211,7 @@ namespace NSProgram
 		public int errors = 0;
 		public int maxRecords = 0;
 		public const string name = "BookReaderMem";
-		public const string version = "2021-03-02";
+		public const string version = "2021-08-16";
 		public string fileShortName = String.Empty;
 		public const string defExt = ".mem";
 		public static CChessExt Chess = new CChessExt();
@@ -306,7 +306,7 @@ namespace NSProgram
 						{
 							CRec rec = new CRec
 							{
-								hash = reader.ReadUInt64(),
+								hash = ReadUInt64(reader),
 								mat = reader.ReadSByte(),
 								age = reader.ReadByte()
 							};
@@ -438,6 +438,25 @@ namespace NSProgram
 				arrAge[rec.age]++;
 		}
 
+		void WriteUInt64(BinaryWriter writer, ulong v)
+		{
+			byte[] bytes = BitConverter.GetBytes(v);
+			if (BitConverter.IsLittleEndian)
+				Array.Reverse(bytes);
+			writer.Write(bytes);
+		}
+
+		ulong ReadUInt64(BinaryReader reader)
+		{
+			ulong v = reader.ReadUInt64();
+			if (BitConverter.IsLittleEndian)
+			{
+				byte[] bytes = BitConverter.GetBytes(v).Reverse().ToArray();
+				return BitConverter.ToUInt64(bytes, 0);
+			}
+			return v;
+		}
+
 		public bool SaveToFile(string p)
 		{
 			if (String.IsNullOrEmpty(p))
@@ -477,7 +496,7 @@ namespace NSProgram
 							rec.age--;
 							rand = randMax;
 						}
-						writer.Write(rec.hash);
+						WriteUInt64(writer,rec.hash);
 						writer.Write(rec.mat);
 						writer.Write(rec.age);
 						lastHash = rec.hash;
