@@ -389,45 +389,51 @@ namespace NSProgram
 			return false;
 		}
 
-		public bool AddUci(string[] moves)
+		public int AddUci(string[] moves,int limit = 0)
 		{
+			int ca = 0;
 			bool update = true;
 			int count = moves.Length;
+			if ((limit == 0)||(limit > count))
+				limit = count;
 			Chess.SetFen();
 			if (!Chess.MakeMoves(moves))
-				return false;
+				return 0;
 			CGameState gs = Chess.GetGameState();
 			Chess.SetFen();
-			for (int n = 0; n < moves.Length; n++)
+			for (int n = 0; n < limit; n++)
 			{
 				string m = moves[n];
 				Chess.MakeMove(m, out _);
-				CRec rec = new CRec();
-				rec.hash = GetHash();
+				CRec rec = new CRec
+				{
+					hash = GetHash()
+				};
 				if (gs == CGameState.mate)
 				{
 					int mate = GetMate(n, count);
 					rec.mat = MateToMat(mate);
 					if (mate > 0)
-						recList.AddRec(rec);
-					else if (update)
-						update = recList.RecUpdate(rec);
+						if (recList.AddRec(rec))
+							ca++;
+						else if (update)
+							update = recList.RecUpdate(rec);
 
 				}
 				else
 					recList.AddHash(rec);
 			}
-			return true;
+			return ca;
 		}
 
-		public bool AddUci(string moves)
+		public int AddUci(string moves,int limit = 0)
 		{
-			return AddUci(moves.Trim().Split(' '));
+			return AddUci(moves.Trim().Split(' '),limit);
 		}
 
-		public bool AddUci(List<string> moves)
+		public int AddUci(List<string> moves,int limit = 0)
 		{
-			return AddUci(moves.ToArray());
+			return AddUci(moves.ToArray(),limit);
 		}
 
 		void RefreshAge()
@@ -622,8 +628,10 @@ namespace NSProgram
 			CEmoList emoList = GetEmoList();
 			if (emoList.Count == 0)
 				return String.Empty;
-			CRec rec = new CRec();
-			rec.hash = GetHash();
+			CRec rec = new CRec
+			{
+				hash = GetHash()
+			};
 			int mat = -emoList[0].mat;
 			if (mat > 0)
 				mat--;

@@ -139,10 +139,8 @@ namespace NSProgram
 								Book.ShowMoves(true);
 							break;
 						case "adduci":
-							if (!Book.AddUci(Uci.GetValue(2, 0)))
-								Console.WriteLine("Wrong uci moves");
-							else
-								Console.WriteLine($"{(Book.recList.Count - count):N0} moves have been added");
+							Book.AddUci(Uci.GetValue(2, 0));
+							Console.WriteLine($"{(Book.recList.Count - count):N0} moves have been added");
 							break;
 						case "clear":
 							Book.Clear();
@@ -193,12 +191,10 @@ namespace NSProgram
 								movesUci.Add(m);
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
-							int c = bookLimitW > 0 ? bookLimitW : movesUci.Count;
-							List<string> l = movesUci.GetRange(0, c);
-							string lm = String.Join(" ", l);
 							if (lba)
-								Book.AddFile(bookName);
-							Book.AddUci(lm);
+								Book.LoadFromFile(bookName);
+							if (Book.AddUci(movesUci, bookLimitW) > 1)
+								Book.Delete(1);
 							Book.SaveToFile();
 						}
 						break;

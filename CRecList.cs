@@ -16,7 +16,7 @@ namespace NSProgram
 	class CRecList : List<CRec>
 	{
 
-		public void AddRec(CRec rec)
+		public bool AddRec(CRec rec)
 		{
 			int index = FindHash(rec.hash);
 			if (index == Count)
@@ -31,10 +31,12 @@ namespace NSProgram
 					if (r.mat < rec.mat)
 						r.mat = (sbyte)(r.mat + (rec.mat - r.mat) >> 4 + 1);
 					r.age = 0xff;
+					return false;
 				}
 				else
 					Insert(index, rec);
 			}
+			return true;
 		}
 
 		public void AddHash(CRec rec)
