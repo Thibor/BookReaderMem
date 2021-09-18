@@ -259,42 +259,33 @@ namespace NSProgram
 			return AddFile(p);
 		}
 
-		public bool LoadFromFile()
+		public void LoadFromFile()
 		{
-			return LoadFromFile(path);
+			LoadFromFile(path);
 		}
 
 		public bool AddFile(string p)
 		{
-			if (File.Exists(p))
-			{
-				if (String.IsNullOrEmpty(fileShortName))
-					fileShortName = Path.GetFileNameWithoutExtension(p);
-				string ext = Path.GetExtension(p);
-				if (ext == defExt)
-					return AddFileMem(p);
-				if (ext == ".pgn")
-					return AddFilePgn(p);
-				if (ext == ".uci")
-					return AddFileUci(p);
-				if (ext == ".fen")
-					return AddFileFen(p);
-			}
-			return false;
+			if (!File.Exists(p))
+				return false;
+			if (String.IsNullOrEmpty(fileShortName))
+				fileShortName = Path.GetFileNameWithoutExtension(p);
+			string ext = Path.GetExtension(p);
+			if (ext == defExt)
+				AddFileMem(p);
+			else if (ext == ".pgn")
+				AddFilePgn(p);
+			else if (ext == ".uci")
+				AddFileUci(p);
+			else if (ext == ".fen")
+				AddFileFen(p);
+			return true;
 		}
 
-		bool AddFileMem(string p)
+		void AddFileMem(string p)
 		{
-			FileStream fs;
-			try
+			using (FileStream fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read))
 			{
-				fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read);
-			}
-			catch
-			{
-				return false;
-			}
-			if (fs != null)
 				using (BinaryReader reader = new BinaryReader(fs))
 				{
 					string header = GetHeader();
@@ -312,29 +303,26 @@ namespace NSProgram
 							};
 							recList.Add(rec);
 						}
-						return true;
 					}
 				}
-			return false;
+			}
 		}
 
-		bool AddFileUci(string p)
+		void AddFileUci(string p)
 		{
 			string[] lines = File.ReadAllLines(p);
 			foreach (string uci in lines)
 				AddUci(uci);
-			return true;
 		}
 
-		bool AddFileFen(string p)
+		void AddFileFen(string p)
 		{
 			string[] lines = File.ReadAllLines(p);
 			foreach (string fen in lines)
 				AddFen(fen);
-			return true;
 		}
 
-		bool AddFilePgn(string p)
+		void AddFilePgn(string p)
 		{
 			List<string> listPgn = File.ReadAllLines(p).ToList();
 			string movesUci = String.Empty;
@@ -372,7 +360,6 @@ namespace NSProgram
 			}
 			AddUci(movesUci);
 			ShowMoves();
-			return true;
 		}
 
 		public bool AddFen(string fen)
@@ -389,12 +376,12 @@ namespace NSProgram
 			return false;
 		}
 
-		public int AddUci(string[] moves,int limit = 0)
+		public int AddUci(string[] moves, int limit = 0)
 		{
 			int ca = 0;
 			bool update = true;
 			int count = moves.Length;
-			if ((limit == 0)||(limit > count))
+			if ((limit == 0) || (limit > count))
 				limit = count;
 			Chess.SetFen();
 			if (!Chess.MakeMoves(moves))
@@ -426,14 +413,14 @@ namespace NSProgram
 			return ca;
 		}
 
-		public int AddUci(string moves,int limit = 0)
+		public int AddUci(string moves, int limit = 0)
 		{
-			return AddUci(moves.Trim().Split(' '),limit);
+			return AddUci(moves.Trim().Split(' '), limit);
 		}
 
-		public int AddUci(List<string> moves,int limit = 0)
+		public int AddUci(List<string> moves, int limit = 0)
 		{
-			return AddUci(moves.ToArray(),limit);
+			return AddUci(moves.ToArray(), limit);
 		}
 
 		void RefreshAge()
@@ -502,7 +489,7 @@ namespace NSProgram
 							rec.age--;
 							rand = randMax;
 						}
-						WriteUInt64(writer,rec.hash);
+						WriteUInt64(writer, rec.hash);
 						writer.Write(rec.mat);
 						writer.Write(rec.age);
 						lastHash = rec.hash;
