@@ -21,8 +21,17 @@ namespace NSProgram
 			/// Load Before Add new moves.
 			/// </summary>
 			bool lba = false;
+			/// <summary>
+			/// Limit ply to write.
+			/// </summary>
 			int bookLimitW = 0;
+			/// <summary>
+			/// Limit ply to read.
+			/// </summary>
 			int bookLimitR = 0;
+			/// <summary>
+			/// Random moves factor.
+			/// </summary>
 			int rnd = 0;
 			CUci Uci = new CUci();
 			CBookMem Book = new CBookMem();
@@ -36,19 +45,19 @@ namespace NSProgram
 				string ac = args[n];
 				switch (ac)
 				{
-					case "-bn":
-					case "-ef":
-					case "-ea":
-					case "-rnd":
-					case "-lr":
-					case "-lw":
+					case "-bn"://book name
+					case "-ef"://engine file
+					case "-ea"://engine arguments
+					case "-rnd"://random moves
+					case "-lr"://limit read
+					case "-lw"://limit write
 						ax = ac;
 						break;
-					case "-w":
+					case "-w"://writable
 						ax = ac;
 						isWritable = true;
 						break;
-					case "-lba":
+					case "-lba"://load before add
 						ax = ac;
 						lba = true;
 						break;

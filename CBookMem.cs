@@ -379,7 +379,7 @@ namespace NSProgram
 		public int AddUci(string[] moves, int limit = 0)
 		{
 			int ca = 0;
-			bool update = true;
+			bool updateL = true;
 			int count = moves.Length;
 			if ((limit == 0) || (limit > count))
 				limit = count;
@@ -401,11 +401,14 @@ namespace NSProgram
 					int mate = GetMate(n, count);
 					rec.mat = MateToMat(mate);
 					if (mate > 0)
+					{
 						if (recList.AddRec(rec))
 							ca++;
-						else if (update)
-							update = recList.RecUpdate(rec);
-
+						else
+							recList.RecUpdate(rec);
+					}
+					else if (updateL)
+						updateL = recList.RecUpdate(rec);
 				}
 				else
 					recList.AddHash(rec);
