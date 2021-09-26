@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NSProgram
 {
@@ -80,10 +77,7 @@ namespace NSProgram
 				CRec r = this[index];
 				if (r.hash == rec.hash)
 				{
-					if (r.mat > rec.mat)
-						r.mat--;
-					if (r.mat < rec.mat)
-						r.mat++;
+					r.mat = rec.mat;
 					return true;
 				}
 			}

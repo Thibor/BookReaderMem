@@ -20,10 +20,6 @@ namespace NSProgram
 			/// <summary>
 			/// Load Before Add new moves.
 			/// </summary>
-			bool lba = false;
-			/// <summary>
-			/// Limit ply to write.
-			/// </summary>
 			int bookLimitW = 0;
 			/// <summary>
 			/// Limit ply to read.
@@ -56,10 +52,6 @@ namespace NSProgram
 					case "-w"://writable
 						ax = ac;
 						isWritable = true;
-						break;
-					case "-lba"://load before add
-						ax = ac;
-						lba = true;
 						break;
 					default:
 						switch (ax)
@@ -200,8 +192,6 @@ namespace NSProgram
 								movesUci.Add(m);
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
-							if (lba)
-								Book.LoadFromFile();
 							if (Book.AddUci(movesUci, bookLimitW) > 1)
 								Book.Delete(1);
 							Book.SaveToFile();

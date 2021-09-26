@@ -379,7 +379,7 @@ namespace NSProgram
 		public int AddUci(string[] moves, int limit = 0)
 		{
 			int ca = 0;
-			bool updateL = true;
+			//bool updateL = true;
 			int count = moves.Length;
 			if ((limit == 0) || (limit > count))
 				limit = count;
@@ -404,11 +404,8 @@ namespace NSProgram
 					{
 						if (recList.AddRec(rec))
 							ca++;
-						else
-							recList.RecUpdate(rec);
 					}
-					else if (updateL)
-						updateL = recList.RecUpdate(rec);
+					//else if (updateL)updateL = recList.RecUpdate(rec);
 				}
 				else
 					recList.AddHash(rec);
