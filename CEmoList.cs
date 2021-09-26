@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using NSChess;
 
 namespace NSProgram
@@ -14,19 +10,19 @@ namespace NSProgram
 		public byte age;
 	}
 
-	class CEmoList:List<CEmo>
+	class CEmoList : List<CEmo>
 	{
 		public CEmo GetRnd(int rnd)
 		{
 			if (Count == 0)
 				return null;
 			CEmo emo = this[0];
-			if (Count == 1)
+			if ((Count == 1) || (rnd == 0))
 				return emo;
-			for(int n = 1; n < Count; n++)
+			for (int n = 1; n < Count; n++)
 			{
 				CEmo e = this[n];
-				if (emo.mat - e.mat > rnd)
+				if (emo.mat - e.mat >= rnd)
 					return this[CChess.random.Next(n)];
 			}
 			return this[CChess.random.Next(Count)];
@@ -36,7 +32,10 @@ namespace NSProgram
 		{
 			Sort(delegate (CEmo e1, CEmo e2)
 			{
-				return e2.mat - e1.mat;
+				int r = e2.mat - e1.mat;
+				if (r != 0)
+					return r;
+				return e1.age - e2.age;
 			});
 		}
 	}
