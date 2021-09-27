@@ -12,7 +12,7 @@ namespace NSProgram
 
 	class CEmoList : List<CEmo>
 	{
-		public CEmo GetRnd(int rnd)
+		public CEmo GetRnd(int rnd = 0)
 		{
 			if (Count == 0)
 				return null;

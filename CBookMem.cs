@@ -376,17 +376,48 @@ namespace NSProgram
 			return false;
 		}
 
+		void AddUciBack(string[] moves)
+		{
+			List<int> le = new List<int>();
+			Chess.SetFen();
+			foreach (string m in moves)
+			{
+				Chess.MakeMove(m, out int emo);
+				le.Add(emo);
+			}
+			for (int n = le.Count - 1; n >= 0; n--)
+			{
+				int emo = le[n];
+				Chess.UnmakeMove(emo);
+				CEmoList emoList = GetEmoList();
+				if (emoList.Count > 0)
+				{
+					CRec rec = new CRec
+					{
+						hash = GetHash()
+					};
+					int mat = -emoList[0].mat;
+					if (mat > 0)
+						mat--;
+					rec.mat = (sbyte)mat;
+					recList.RecUpdate(rec);
+				}
+			}
+			Chess.SetFen();
+			Chess.MakeMoves(moves);
+		}
+
 		public int AddUci(string[] moves, int limit = 0)
 		{
 			int ca = 0;
-			//bool updateL = true;
+			bool updateL = true;
 			int count = moves.Length;
 			if ((limit == 0) || (limit > count))
 				limit = count;
 			Chess.SetFen();
 			if (!Chess.MakeMoves(moves))
 				return 0;
-			CGameState gs = Chess.GetGameState();
+			bool isMate = Chess.GetGameState() == CGameState.mate;
 			Chess.SetFen();
 			for (int n = 0; n < limit; n++)
 			{
@@ -396,7 +427,7 @@ namespace NSProgram
 				{
 					hash = GetHash()
 				};
-				if (gs == CGameState.mate)
+				if (isMate)
 				{
 					int mate = GetMate(n, count);
 					rec.mat = MateToMat(mate);
@@ -405,11 +436,13 @@ namespace NSProgram
 						if (recList.AddRec(rec))
 							ca++;
 					}
-					//else if (updateL)updateL = recList.RecUpdate(rec);
+					else if (updateL)
+						updateL = recList.RecUpdate(rec);
 				}
 				else
 					recList.AddHash(rec);
 			}
+			AddUciBack(moves);
 			return ca;
 		}
 
@@ -615,15 +648,6 @@ namespace NSProgram
 			CEmoList emoList = GetEmoList();
 			if (emoList.Count == 0)
 				return String.Empty;
-			CRec rec = new CRec
-			{
-				hash = GetHash()
-			};
-			int mat = -emoList[0].mat;
-			if (mat > 0)
-				mat--;
-			rec.mat = (sbyte)mat;
-			recList.RecUpdate(rec);
 			CEmo bst = emoList.GetRnd(rnd);
 			string umo = Chess.EmoToUmo(bst.emo);
 			int mate = MatToMate(bst.mat);
@@ -640,13 +664,19 @@ namespace NSProgram
 		{
 			int l = recList.Count.ToString().Length;
 			int ageAvg = recList.Count / 0x100;
-			Console.WriteLine($"moves {recList.Count:N0} avg {ageAvg:N0} max {AgeMax():N0}");
+			int ageMax = AgeMax();
+			Console.WriteLine($"moves {recList.Count:N0} avg {ageAvg:N0} max {ageMax:N0}");
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
 			RefreshAge();
-			for (int n = 0xff; n >= 0; n -= 0x20)
-				ShowLevel(n, l);
-			ShowLevel(0, l);
+			ShowLevel(255,l);
+			for (int n = 254; n >= 0; n--)
+			{
+				if ((arrAge[n] == ageMax) || (arrAge[n] < ageAvg))
+					ShowLevel(n, l);
+				if (arrAge[n] == 0)
+					break;
+			}
 		}
 
 		public void InfoMoves(string moves)

@@ -23,6 +23,7 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **book clear** - clear all moves from the book<br/>
 **book moves** [uci] - make sequence of moves in uci format and shows possible continuations<br/>
 **book structure** - show structure of current book<br/>
+**quit** quit the program as soon as possible
 
 ### Examples
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NSProgram
 {
@@ -23,10 +22,7 @@ namespace NSProgram
 				CRec r = this[index];
 				if (r.hash == rec.hash)
 				{
-					if (r.mat > rec.mat)
-						r.mat = (sbyte)(r.mat - (r.mat - rec.mat) >> 4 - 1);
-					if (r.mat < rec.mat)
-						r.mat = (sbyte)(r.mat + (rec.mat - r.mat) >> 4 + 1);
+					r.mat = rec.mat;
 					r.age = 0xff;
 					return false;
 				}

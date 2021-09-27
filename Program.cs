@@ -14,9 +14,13 @@ namespace NSProgram
 		{
 			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			/// <summary>
+			/// Load book before add new moves.
+			/// </summary>
+			bool isLba = false;
+			/// <summary>
 			/// Book can write new moves.
 			/// </summary>
-			bool isWritable = false;
+			bool isW = false;
 			/// <summary>
 			/// Load Before Add new moves.
 			/// </summary>
@@ -49,9 +53,13 @@ namespace NSProgram
 					case "-lw"://limit write
 						ax = ac;
 						break;
+					case "-lba"://load before add
+						ax = ac;
+						isLba = true;
+						break;
 					case "-w"://writable
 						ax = ac;
-						isWritable = true;
+						isW = true;
 						break;
 					default:
 						switch (ax)
@@ -105,7 +113,7 @@ namespace NSProgram
 			if (!Book.LoadFromFile(bookName))
 				Book.LoadFromFile($"{bookName}{CBookMem.defExt}");
 			Console.WriteLine($"info string book {Book.recList.Count:N0} moves");
-			while (true)
+			do
 			{
 				string msg = Console.ReadLine().Trim();
 				if (String.IsNullOrEmpty(msg) || (msg == "help") || (msg == "book"))
@@ -184,7 +192,7 @@ namespace NSProgram
 						string moves = Uci.GetValue("moves", "fen");
 						Chess.SetFen(fen);
 						Chess.MakeMoves(moves);
-						if (isWritable && String.IsNullOrEmpty(fen) && Chess.Is2ToEnd(out string myMove, out string enMove))
+						if (isW && String.IsNullOrEmpty(fen) && Chess.Is2ToEnd(out string myMove, out string enMove))
 						{
 							string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 							List<string> movesUci = new List<string>();
@@ -192,6 +200,8 @@ namespace NSProgram
 								movesUci.Add(m);
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
+							if(isLba)
+								Book.LoadFromFile();
 							if (Book.AddUci(movesUci, bookLimitW) > 1)
 								Book.Delete(1);
 							Book.SaveToFile();
@@ -209,7 +219,7 @@ namespace NSProgram
 							myProcess.StandardInput.WriteLine(msg);
 						break;
 				}
-			}
+			} while (Uci.command != "quit");
 		}
 	}
 }
