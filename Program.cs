@@ -22,7 +22,7 @@ namespace NSProgram
 			/// </summary>
 			bool isW = false;
 			/// <summary>
-			/// Load Before Add new moves.
+			/// Limit ply to wrtie.
 			/// </summary>
 			int bookLimitW = 0;
 			/// <summary>
@@ -49,8 +49,8 @@ namespace NSProgram
 					case "-ef"://engine file
 					case "-ea"://engine arguments
 					case "-rnd"://random moves
-					case "-lr"://limit read
-					case "-lw"://limit write
+					case "-lr"://limit read in half moves
+					case "-lw"://limit write in half moves
 						ax = ac;
 						break;
 					case "-lba"://load before add
