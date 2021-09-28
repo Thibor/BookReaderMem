@@ -669,7 +669,7 @@ namespace NSProgram
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
 			RefreshAge();
-			ShowLevel(255,l);
+			ShowLevel(255, l);
 			for (int n = 254; n >= 0; n--)
 			{
 				if ((arrAge[n] == ageMax) || (arrAge[n] < ageAvg))
