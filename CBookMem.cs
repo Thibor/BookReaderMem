@@ -230,10 +230,21 @@ namespace NSProgram
 			}
 		}
 
+		int AgeAvg()
+		{
+			return recList.Count >> 8;
+		}
+
+		int AgeDel()
+		{
+			return AgeAvg() / randMax + 1;
+		}
+
 		int AgeMax()
 		{
-			double ageAvg = recList.Count / 256.0 + 1;
-			return Convert.ToInt32(ageAvg + ageAvg / (randMax + 1));
+			double ageAvg = AgeAvg();
+			double ageDel = AgeDel();
+			return Convert.ToInt32(ageAvg + ageDel * 0.6);
 		}
 
 		public void Clear()
@@ -410,7 +421,6 @@ namespace NSProgram
 		public int AddUci(string[] moves, int limit = 0)
 		{
 			int ca = 0;
-			bool updateL = true;
 			int count = moves.Length;
 			if ((limit == 0) || (limit > count))
 				limit = count;
@@ -432,15 +442,14 @@ namespace NSProgram
 					int mate = GetMate(n, count);
 					rec.mat = MateToMat(mate);
 					if (mate > 0)
-					{
-						if (recList.AddRec(rec))
-							ca++;
-					}
-					else if (updateL)
-						updateL = recList.RecUpdate(rec);
+						ca += recList.AddRec(rec);
+					else if (!recList.RecUpdate(rec))
+						break;
+					if (ca > 0)
+						break;
 				}
 				else
-					recList.AddHash(rec);
+					ca += recList.AddHash(rec);
 			}
 			AddUciBack(moves);
 			return ca;
@@ -663,8 +672,11 @@ namespace NSProgram
 		public void InfoStructure()
 		{
 			int l = recList.Count.ToString().Length;
-			int ageAvg = recList.Count / 0x100;
+			int ageAvg = AgeAvg();
 			int ageMax = AgeMax();
+			int ageDel = AgeDel();
+			int max = ageAvg + ageDel;
+			int min = ageAvg - ageDel;
 			Console.WriteLine($"moves {recList.Count:N0} avg {ageAvg:N0} max {ageMax:N0}");
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
@@ -672,7 +684,7 @@ namespace NSProgram
 			ShowLevel(255, l);
 			for (int n = 254; n >= 0; n--)
 			{
-				if ((arrAge[n] == ageMax) || (arrAge[n] < ageAvg))
+				if ((arrAge[n] > max) || (arrAge[n] < min))
 					ShowLevel(n, l);
 				if (arrAge[n] == 0)
 					break;

@@ -202,8 +202,7 @@ namespace NSProgram
 							movesUci.Add(enMove);
 							if(isLba)
 								Book.LoadFromFile();
-							if (Book.AddUci(movesUci, bookLimitW) > 1)
-								Book.Delete(1);
+							Book.AddUci(movesUci, bookLimitW);
 							Book.SaveToFile();
 						}
 						break;
