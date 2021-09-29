@@ -237,14 +237,14 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeAvg() / randMax + 1;
+			return AgeAvg() / randMax; 
 		}
 
 		int AgeMax()
 		{
 			double ageAvg = AgeAvg();
 			double ageDel = AgeDel();
-			return Convert.ToInt32(ageAvg + ageDel * 0.6);
+			return Convert.ToInt32(ageAvg + ageDel * 0.6 + 1);
 		}
 
 		public void Clear()
