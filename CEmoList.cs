@@ -16,14 +16,14 @@ namespace NSProgram
 		{
 			if (Count == 0)
 				return null;
-			CEmo emo = this[0];
-			if ((Count == 1) || (rnd == 0))
-				return emo;
-			if(rnd > 100)
+			if (rnd > 100)
 			{
 				Reverse();
 				rnd = 200 - rnd;
 			}
+			CEmo emo = this[0];
+			if ((Count == 1) || (rnd == 0))
+				return emo;
 			for (int n = 1; n < Count; n++)
 			{
 				CEmo e = this[n];
