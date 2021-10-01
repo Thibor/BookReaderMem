@@ -34,8 +34,7 @@ namespace NSProgram
 			/// </summary>
 			int rnd = 0;
 			CUci Uci = new CUci();
-			CBookMem Book = new CBookMem();
-			CChessExt Chess = CBookMem.Chess;
+			CBookMem book = new CBookMem();
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
@@ -78,7 +77,7 @@ namespace NSProgram
 								break;
 							case "-w":
 								ac = ac.Replace("K", "000").Replace("M", "000000");
-								Book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
+								book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
 								break;
 							case "-lr":
 								bookLimitR = int.TryParse(ac, out int lr) ? lr : 0;
@@ -110,9 +109,9 @@ namespace NSProgram
 				engineName = "";
 			}
 
-			if (!Book.LoadFromFile(bookName))
-				Book.LoadFromFile($"{bookName}{CBookMem.defExt}");
-			Console.WriteLine($"info string book {Book.recList.Count:N0} moves");
+			if (!book.LoadFromFile(bookName))
+				book.LoadFromFile($"{bookName}{CBookMem.defExt}");
+			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
 			do
 			{
 				string msg = Console.ReadLine().Trim();
@@ -130,49 +129,49 @@ namespace NSProgram
 					continue;
 				}
 				Uci.SetMsg(msg);
-				int count = Book.recList.Count;
+				int count = book.recList.Count;
 				if (Uci.command == "book")
 				{
 					switch (Uci.tokens[1])
 					{
 						case "addfen":
-							if (Book.AddFen(Uci.GetValue(2, 0)))
+							if (book.AddFen(Uci.GetValue(2, 0)))
 								Console.WriteLine("Fen have been added");
 							else
 								Console.WriteLine("Wrong fen");
 							break;
 						case "addfile":
-							if (!Book.AddFile(Uci.GetValue(2, 0)))
+							if (!book.AddFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							else
-								Book.ShowMoves(true);
+								book.ShowMoves(true);
 							break;
 						case "adduci":
-							Book.AddUci(Uci.GetValue(2, 0));
-							Console.WriteLine($"{(Book.recList.Count - count):N0} moves have been added");
+							book.AddUci(Uci.GetValue(2, 0));
+							Console.WriteLine($"{(book.recList.Count - count):N0} moves have been added");
 							break;
 						case "clear":
-							Book.Clear();
+							book.Clear();
 							Console.WriteLine("Book is empty");
 							break;
 						case "delete":
-							int c = Book.Delete(Uci.GetInt(2));
+							int c = book.Delete(Uci.GetInt(2));
 							Console.WriteLine($"{c:N0} moves was deleted");
 							break;
 						case "load":
-							if (!Book.LoadFromFile(Uci.GetValue(2, 0)))
+							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("File not found");
 							else
-								Book.ShowMoves(true);
+								book.ShowMoves(true);
 							break;
 						case "moves":
-							Book.InfoMoves(Uci.GetValue(2, 0));
+							book.InfoMoves(Uci.GetValue(2, 0));
 							break;
 						case "structure":
-							Book.InfoStructure();
+							book.InfoStructure();
 							break;
 						case "save":
-							if (Book.SaveToFile(Uci.GetValue(2, 0)))
+							if (book.SaveToFile(Uci.GetValue(2, 0)))
 								Console.WriteLine("The book has been saved");
 							else
 								Console.WriteLine("Writing to the file has failed");
@@ -190,9 +189,9 @@ namespace NSProgram
 					case "position":
 						string fen = Uci.GetValue("fen", "moves");
 						string moves = Uci.GetValue("moves", "fen");
-						Chess.SetFen(fen);
-						Chess.MakeMoves(moves);
-						if (isW && String.IsNullOrEmpty(fen) && Chess.Is2ToEnd(out string myMove, out string enMove))
+						book.chess.SetFen(fen);
+						book.chess.MakeMoves(moves);
+						if (isW && String.IsNullOrEmpty(fen) && book.chess.Is2ToEnd(out string myMove, out string enMove))
 						{
 							string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 							List<string> movesUci = new List<string>();
@@ -201,15 +200,15 @@ namespace NSProgram
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
 							if(isLba)
-								Book.LoadFromFile();
-							Book.AddUci(movesUci, bookLimitW);
-							Book.SaveToFile();
+								book.LoadFromFile();
+							book.AddUci(movesUci, bookLimitW);
+							book.SaveToFile();
 						}
 						break;
 					case "go":
 						string move = String.Empty;
-						if ((Chess.g_moveNumber < bookLimitR) || (bookLimitR == 0))
-							move = Book.GetMove(rnd);
+						if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
+							move = book.GetMove(rnd);
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
 						else if (engineName == "")

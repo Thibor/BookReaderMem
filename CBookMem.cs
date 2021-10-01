@@ -214,7 +214,7 @@ namespace NSProgram
 		public const string version = "2021-08-16";
 		public string fileShortName = String.Empty;
 		public const string defExt = ".mem";
-		public static CChessExt Chess = new CChessExt();
+		public CChessExt chess = new CChessExt();
 		readonly int[] arrAge = new int[0x100];
 		public CRecList recList = new CRecList();
 
@@ -242,9 +242,9 @@ namespace NSProgram
 
 		int AgeMax()
 		{
-			double ageAvg = AgeAvg();
-			double ageDel = AgeDel();
-			return Convert.ToInt32(ageAvg + ageDel * 0.6 + 1);
+			int ageAvg = AgeAvg();
+			int ageDel = AgeDel();
+			return ageAvg + (ageDel >> 1) + 1;
 		}
 
 		public void Clear()
@@ -337,7 +337,7 @@ namespace NSProgram
 		{
 			List<string> listPgn = File.ReadAllLines(p).ToList();
 			string movesUci = String.Empty;
-			Chess.SetFen();
+			chess.SetFen();
 			foreach (string m in listPgn)
 			{
 				string cm = m.Trim();
@@ -351,22 +351,22 @@ namespace NSProgram
 					AddUci(movesUci);
 					ShowMoves();
 					movesUci = String.Empty;
-					Chess.SetFen();
+					chess.SetFen();
 				}
 				string[] arrMoves = cm.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
 				foreach (string san in arrMoves)
 				{
 					if (Char.IsDigit(san[0]))
 						continue;
-					string umo = Chess.SanToUmo(san);
+					string umo = chess.SanToUmo(san);
 					if (umo == String.Empty)
 					{
 						errors++;
 						break;
 					}
 					movesUci += $" {umo}";
-					int emo = Chess.UmoToEmo(umo);
-					Chess.MakeMove(emo);
+					int emo = chess.UmoToEmo(umo);
+					chess.MakeMove(emo);
 				}
 			}
 			AddUci(movesUci);
@@ -375,7 +375,7 @@ namespace NSProgram
 
 		public bool AddFen(string fen)
 		{
-			if (Chess.SetFen(fen))
+			if (chess.SetFen(fen))
 			{
 				CRec rec = new CRec
 				{
@@ -390,16 +390,16 @@ namespace NSProgram
 		void AddUciBack(string[] moves)
 		{
 			List<int> le = new List<int>();
-			Chess.SetFen();
+			chess.SetFen();
 			foreach (string m in moves)
 			{
-				Chess.MakeMove(m, out int emo);
+				chess.MakeMove(m, out int emo);
 				le.Add(emo);
 			}
 			for (int n = le.Count - 1; n >= 0; n--)
 			{
 				int emo = le[n];
-				Chess.UnmakeMove(emo);
+				chess.UnmakeMove(emo);
 				CEmoList emoList = GetEmoList();
 				if (emoList.Count > 0)
 				{
@@ -414,8 +414,8 @@ namespace NSProgram
 					recList.RecUpdate(rec);
 				}
 			}
-			Chess.SetFen();
-			Chess.MakeMoves(moves);
+			chess.SetFen();
+			chess.MakeMoves(moves);
 		}
 
 		public int AddUci(string[] moves, int limit = 0)
@@ -424,15 +424,15 @@ namespace NSProgram
 			int count = moves.Length;
 			if ((limit == 0) || (limit > count))
 				limit = count;
-			Chess.SetFen();
-			if (!Chess.MakeMoves(moves))
+			chess.SetFen();
+			if (!chess.MakeMoves(moves))
 				return 0;
-			bool isMate = Chess.GetGameState() == CGameState.mate;
-			Chess.SetFen();
+			bool isMate = chess.GetGameState() == CGameState.mate;
+			chess.SetFen();
 			for (int n = 0; n < limit; n++)
 			{
 				string m = moves[n];
-				Chess.MakeMove(m, out _);
+				chess.MakeMove(m, out _);
 				CRec rec = new CRec
 				{
 					hash = GetHash()
@@ -590,7 +590,7 @@ namespace NSProgram
 
 		public ulong GetHash()
 		{
-			string fen = Chess.GetFen();
+			string fen = chess.GetFen();
 			string[] chunks = fen.Split(' ');
 			ulong key = 0;
 			for (int y = 0; y < 8; y++)
@@ -598,13 +598,13 @@ namespace NSProgram
 				{
 					int n = y * 8 + x;
 					int fr = CChessExt.arrField[n];
-					int field = Chess.g_board[fr];
+					int field = chess.g_board[fr];
 					int rank = (field & 7) - 1;
 					if (rank < 0)
 						continue;
 					int col = (field & CChessExt.colorWhite) > 0 ? 1 : 0;
 					int cy = y;
-					if (Chess.whiteTurn)
+					if (chess.whiteTurn)
 					{
 						col = col == 0 ? 1 : 0;
 						cy = 7 - y;
@@ -613,13 +613,13 @@ namespace NSProgram
 					int i = 64 * shift + 8 * cy + x;
 					key ^= Random64[i];
 				}
-			if ((Chess.g_castleRights & 1) != 0)
+			if ((chess.g_castleRights & 1) != 0)
 				key ^= Random64[768];
-			if ((Chess.g_castleRights & 2) != 0)
+			if ((chess.g_castleRights & 2) != 0)
 				key ^= Random64[769];
-			if ((Chess.g_castleRights & 4) != 0)
+			if ((chess.g_castleRights & 4) != 0)
 				key ^= Random64[770];
-			if ((Chess.g_castleRights & 8) != 0)
+			if ((chess.g_castleRights & 8) != 0)
 				key ^= Random64[771];
 			string passing = chunks[3];
 			if (passing != "-")
@@ -630,10 +630,10 @@ namespace NSProgram
 		public CEmoList GetEmoList()
 		{
 			CEmoList emoList = new CEmoList();
-			List<int> moves = Chess.GenerateValidMoves(out _, true);
+			List<int> moves = chess.GenerateValidMoves(out _, true);
 			foreach (int m in moves)
 			{
-				Chess.MakeMove(m);
+				chess.MakeMove(m);
 				ulong hash = GetHash();
 				CRec rec = recList.GetRec(hash);
 				if (rec != null)
@@ -646,7 +646,7 @@ namespace NSProgram
 					};
 					emoList.Add(emo);
 				}
-				Chess.UnmakeMove(m);
+				chess.UnmakeMove(m);
 			}
 			emoList.SortMat();
 			return emoList;
@@ -658,7 +658,7 @@ namespace NSProgram
 			if (emoList.Count == 0)
 				return String.Empty;
 			CEmo bst = emoList.GetRnd(rnd);
-			string umo = Chess.EmoToUmo(bst.emo);
+			string umo = chess.EmoToUmo(bst.emo);
 			int mate = MatToMate(bst.mat);
 			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} ({emoList.Count})");
 			return umo;
@@ -693,8 +693,8 @@ namespace NSProgram
 
 		public void InfoMoves(string moves)
 		{
-			Chess.SetFen();
-			if (!Chess.MakeMoves(moves))
+			chess.SetFen();
+			if (!chess.MakeMoves(moves))
 				Console.WriteLine("wrong moves");
 			else
 			{
@@ -708,7 +708,7 @@ namespace NSProgram
 					int i = 1;
 					foreach (CEmo e in el)
 					{
-						string umo = Chess.EmoToUmo(e.emo);
+						string umo = chess.EmoToUmo(e.emo);
 						Console.WriteLine(String.Format("{0,2} {1,-4} {2,5} {3,3}", i++, umo, e.mat, e.age));
 					}
 				}

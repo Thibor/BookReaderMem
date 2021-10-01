@@ -19,6 +19,11 @@ namespace NSProgram
 			CEmo emo = this[0];
 			if ((Count == 1) || (rnd == 0))
 				return emo;
+			if(rnd > 100)
+			{
+				Reverse();
+				rnd = 200 - rnd;
+			}
 			for (int n = 1; n < Count; n++)
 			{
 				CEmo e = this[n];
