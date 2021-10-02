@@ -410,6 +410,8 @@ namespace NSProgram
 					int mat = -emoList[0].mat;
 					if (mat > 0)
 						mat--;
+					else if (mat == 0)
+						mat = -1;
 					rec.mat = (sbyte)mat;
 					recList.RecUpdate(rec);
 				}
