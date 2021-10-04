@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using NSUci;
 
 namespace NSProgram
@@ -12,7 +11,6 @@ namespace NSProgram
 
 		static void Main(string[] args)
 		{
-			//ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
 			bool analyze = false;
 			/// <summary>
 			/// Load book before add new moves.
