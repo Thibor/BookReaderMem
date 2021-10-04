@@ -213,6 +213,7 @@ namespace NSProgram
 		public const string name = "BookReaderMem";
 		public const string version = "2021-08-16";
 		public string fileShortName = String.Empty;
+		string fileDirectory = String.Empty;
 		public const string defExt = ".mem";
 		public CChessExt chess = new CChessExt();
 		readonly int[] arrAge = new int[0x100];
@@ -265,6 +266,7 @@ namespace NSProgram
 		public bool LoadFromFile(string p)
 		{
 			path = p;
+			fileDirectory = Path.GetDirectoryName(p);
 			fileShortName = Path.GetFileNameWithoutExtension(p);
 			recList.Clear();
 			return AddFile(p);
@@ -557,7 +559,7 @@ namespace NSProgram
 
 		public void SaveToFile()
 		{
-			SaveToFile($"{fileShortName}{defExt}");
+			SaveToFile($@"{fileDirectory}\{fileShortName}{defExt}");
 		}
 
 		sbyte MateToMat(int mate)

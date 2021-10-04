@@ -36,8 +36,8 @@ namespace NSProgram
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
-			string ax = "-bn";
-			List<string> listBn = new List<string>();
+			string ax = "-bf";
+			List<string> listBf = new List<string>();
 			List<string> listEf = new List<string>();
 			List<string> listEa = new List<string>();
 			List<string> listTf = new List<string>();
@@ -46,7 +46,7 @@ namespace NSProgram
 				string ac = args[n];
 				switch (ac)
 				{
-					case "-bn"://book name
+					case "-bf"://book file
 					case "-ef"://engine file
 					case "-ea"://engine arguments
 					case "-rnd"://random moves
@@ -66,8 +66,8 @@ namespace NSProgram
 					default:
 						switch (ax)
 						{
-							case "-bn":
-								listBn.Add(ac);
+							case "-bf":
+								listBf.Add(ac);
 								break;
 							case "-ef":
 								listEf.Add(ac);
@@ -95,14 +95,14 @@ namespace NSProgram
 						break;
 				}
 			}
-			string bookName = String.Join(" ", listBn);
+			string bookFile = String.Join(" ", listBf);
 			string engineFile = String.Join(" ", listEf);
 			string teacherFile = String.Join(" ", listTf);
 			string arguments = String.Join(" ", listEa);
-			string ext = Path.GetExtension(bookName);
+			string ext = Path.GetExtension(bookFile);
 			if (String.IsNullOrEmpty(ext))
-				bookName = $"{bookName}{CBookMem.defExt}";
-			bool fileLoaded = book.LoadFromFile(bookName);
+				bookFile = $"{bookFile}{CBookMem.defExt}";
+			bool fileLoaded = book.LoadFromFile(bookFile);
 			if (fileLoaded)
 				Console.WriteLine($"info string book on");
 
@@ -245,6 +245,7 @@ namespace NSProgram
 								book.ShowMoves(true);
 							break;
 						case "moves":
+							book.SaveToFile();
 							book.InfoMoves(Uci.GetValue(2, 0));
 							break;
 						case "structure":
