@@ -237,7 +237,7 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeAvg() / randMax; 
+			return AgeAvg() / randMax;
 		}
 
 		int AgeMax()
@@ -270,20 +270,20 @@ namespace NSProgram
 			return AddFile(p);
 		}
 
-		public void LoadFromFile()
+		public bool LoadFromFile()
 		{
-			LoadFromFile(path);
+			return LoadFromFile(path);
 		}
 
 		public bool AddFile(string p)
 		{
 			if (!File.Exists(p))
-				return false;
+				return true;
 			if (String.IsNullOrEmpty(fileShortName))
 				fileShortName = Path.GetFileNameWithoutExtension(p);
 			string ext = Path.GetExtension(p);
 			if (ext == defExt)
-				AddFileMem(p);
+				return AddFileMem(p);
 			else if (ext == ".pgn")
 				AddFilePgn(p);
 			else if (ext == ".uci")
@@ -293,30 +293,38 @@ namespace NSProgram
 			return true;
 		}
 
-		void AddFileMem(string p)
+		bool AddFileMem(string p)
 		{
-			using (FileStream fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read))
+			try
 			{
-				using (BinaryReader reader = new BinaryReader(fs))
+				using (FileStream fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
-					string header = GetHeader();
-					if (reader.ReadString() != header)
-						Console.WriteLine($"This program only supports version  [{header}]");
-					else
+					using (BinaryReader reader = new BinaryReader(fs))
 					{
-						while (reader.BaseStream.Position != reader.BaseStream.Length)
+						string header = GetHeader();
+						if (reader.ReadString() != header)
+							Console.WriteLine($"This program only supports version  [{header}]");
+						else
 						{
-							CRec rec = new CRec
+							while (reader.BaseStream.Position != reader.BaseStream.Length)
 							{
-								hash = ReadUInt64(reader),
-								mat = reader.ReadSByte(),
-								age = reader.ReadByte()
-							};
-							recList.Add(rec);
+								CRec rec = new CRec
+								{
+									hash = ReadUInt64(reader),
+									mat = reader.ReadSByte(),
+									age = reader.ReadByte()
+								};
+								recList.Add(rec);
+							}
 						}
 					}
 				}
 			}
+			catch
+			{
+				return false;
+			}
+			return true;
 		}
 
 		void AddFileUci(string p)
@@ -509,36 +517,36 @@ namespace NSProgram
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0xff; n > 0; n--)
 				arrAct[n] = arrAge[n] > ageMax;
-			FileStream fs;
 			try
 			{
-				fs = File.Open(p, FileMode.Create, FileAccess.Write);
+				using (FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write))
+				{
+					using (BinaryWriter writer = new BinaryWriter(fs))
+					{
+						ulong lastHash = 0;
+						recList.SortHash();
+						writer.Write(GetHeader());
+						foreach (CRec rec in recList)
+						{
+							if (rec.hash == lastHash)
+								continue;
+							if (arrAct[rec.age] && (rand-- == 0))
+							{
+								rec.age--;
+								rand = randMax;
+							}
+							WriteUInt64(writer, rec.hash);
+							writer.Write(rec.mat);
+							writer.Write(rec.age);
+							lastHash = rec.hash;
+						}
+					}
+				}
 			}
 			catch
 			{
 				return false;
-			}
-			if (fs != null)
-				using (BinaryWriter writer = new BinaryWriter(fs))
-				{
-					ulong lastHash = 0;
-					recList.SortHash();
-					writer.Write(GetHeader());
-					foreach (CRec rec in recList)
-					{
-						if (rec.hash == lastHash)
-							continue;
-						if (arrAct[rec.age] && (rand-- == 0))
-						{
-							rec.age--;
-							rand = randMax;
-						}
-						WriteUInt64(writer, rec.hash);
-						writer.Write(rec.mat);
-						writer.Write(rec.age);
-						lastHash = rec.hash;
-					}
-				}
+			}	
 			return true;
 		}
 

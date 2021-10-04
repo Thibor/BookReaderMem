@@ -12,7 +12,8 @@ namespace NSProgram
 
 		static void Main(string[] args)
 		{
-			ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			//ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls11 | SecurityProtocolType.Tls12;
+			bool analyze = false;
 			/// <summary>
 			/// Load book before add new moves.
 			/// </summary>
@@ -33,12 +34,15 @@ namespace NSProgram
 			/// Random moves factor.
 			/// </summary>
 			int rnd = 0;
+			string analyzeMoves = String.Empty;
+			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
 			List<string> listEa = new List<string>();
+			List<string> listTf = new List<string>();
 			for (int n = 0; n < args.Length; n++)
 			{
 				string ac = args[n];
@@ -50,6 +54,7 @@ namespace NSProgram
 					case "-rnd"://random moves
 					case "-lr"://limit read in half moves
 					case "-lw"://limit write in half moves
+					case "-tf"://teacher file
 						ax = ac;
 						break;
 					case "-lba"://load before add
@@ -68,6 +73,9 @@ namespace NSProgram
 								break;
 							case "-ef":
 								listEf.Add(ac);
+								break;
+							case "-tf":
+								listTf.Add(ac);
 								break;
 							case "-ea":
 								listEa.Add(ac);
@@ -90,27 +98,98 @@ namespace NSProgram
 				}
 			}
 			string bookName = String.Join(" ", listBn);
-			string engineName = String.Join(" ", listEf);
+			string engineFile = String.Join(" ", listEf);
+			string teacherFile = String.Join(" ", listTf);
 			string arguments = String.Join(" ", listEa);
-			Process myProcess = new Process();
-			if (File.Exists(engineName))
+			string ext = Path.GetExtension(bookName);
+			if (String.IsNullOrEmpty(ext))
+				bookName = $"{bookName}{CBookMem.defExt}";
+			bool fileLoaded = book.LoadFromFile(bookName);
+			if (fileLoaded)
+				Console.WriteLine($"info string book on");
+
+			Process engineProcess = null;
+			if (File.Exists(engineFile))
 			{
-				myProcess.StartInfo.FileName = engineName;
-				myProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(engineName);
-				myProcess.StartInfo.UseShellExecute = false;
-				myProcess.StartInfo.RedirectStandardInput = true;
-				myProcess.StartInfo.Arguments = arguments;
-				myProcess.Start();
+				engineProcess = new Process();
+				engineProcess.StartInfo.FileName = engineFile;
+				engineProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(engineFile);
+				engineProcess.StartInfo.UseShellExecute = false;
+				engineProcess.StartInfo.RedirectStandardInput = true;
+				engineProcess.StartInfo.Arguments = arguments;
+				engineProcess.Start();
+				Console.WriteLine($"info string engine on");
 			}
 			else
 			{
-				if (engineName != "")
-					Console.WriteLine($"info string missing engine  [{engineName}]");
-				engineName = "";
+				if (engineFile != String.Empty)
+					Console.WriteLine($"info string missing engine  [{engineFile}]");
+				engineFile = String.Empty;
 			}
 
-			if (!book.LoadFromFile(bookName))
-				book.LoadFromFile($"{bookName}{CBookMem.defExt}");
+			Process teacherProcess = null;
+			if (File.Exists(teacherFile))
+			{
+				teacherProcess = new Process();
+				teacherProcess.StartInfo.FileName = teacherFile;
+				teacherProcess.StartInfo.WorkingDirectory = Path.GetDirectoryName(teacherFile);
+				teacherProcess.StartInfo.CreateNoWindow = true;
+				teacherProcess.StartInfo.RedirectStandardInput = true;
+				teacherProcess.StartInfo.RedirectStandardOutput = true;
+				teacherProcess.StartInfo.RedirectStandardError = true;
+				teacherProcess.StartInfo.UseShellExecute = false;
+				teacherProcess.OutputDataReceived += OnDataReceived;
+				teacherProcess.Start();
+				teacherProcess.BeginOutputReadLine();
+				teacherProcess.PriorityClass = ProcessPriorityClass.Idle;
+				Console.WriteLine($"info string teacher on");
+				TeacherWriteLine("uci");
+				TeacherWriteLine("isready");
+				TeacherWriteLine("ucinewgame");
+			}
+
+			void OnDataReceived(object sender, DataReceivedEventArgs e)
+			{
+				try
+				{
+					if (!String.IsNullOrEmpty(e.Data))
+					{
+						string[] tokens = e.Data.Trim().Split(' ');
+						if (tokens[0] == "bestmove")
+						{
+							string nm = $"{analyzeMoves} {tokens[1]}";
+							book.AddUci(nm);
+							if (fileLoaded)
+								book.SaveToFile();
+						}
+					}
+				}
+				catch { }
+			}
+
+			void TeacherWriteLine(string c)
+			{
+				if (teacherProcess != null)
+					if (!teacherProcess.HasExited)
+					{
+						teacherProcess.StandardInput.WriteLine(c);
+						teacherProcess.StandardInput.Flush();
+					}
+			}
+
+			void TeacherTerminate()
+			{
+				if (teacherProcess != null)
+				{
+					teacherProcess.OutputDataReceived -= OnDataReceived;
+					teacherProcess.Kill();
+					teacherProcess = null;
+				}
+			}
+
+
+			if (isW || (teacherProcess != null))
+				Console.WriteLine($"log {book.recList.Count:N0} moves");
 			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
 			do
 			{
@@ -141,10 +220,13 @@ namespace NSProgram
 								Console.WriteLine("Wrong fen");
 							break;
 						case "addfile":
-							if (!book.AddFile(Uci.GetValue(2, 0)))
-								Console.WriteLine("File not found");
-							else
+							string fn = Uci.GetValue(2, 0);
+							if (File.Exists(fn))
+							{
+								book.AddFile(fn);
 								book.ShowMoves(true);
+							}
+							else Console.WriteLine("File not found");
 							break;
 						case "adduci":
 							book.AddUci(Uci.GetValue(2, 0));
@@ -182,27 +264,43 @@ namespace NSProgram
 					}
 					continue;
 				}
-				if ((Uci.command != "go") && (engineName != ""))
-					myProcess.StandardInput.WriteLine(msg);
+				if ((Uci.command != "go") && (engineProcess != null))
+					engineProcess.StandardInput.WriteLine(msg);
 				switch (Uci.command)
 				{
 					case "position":
 						string fen = Uci.GetValue("fen", "moves");
-						string moves = Uci.GetValue("moves", "fen");
+						lastMoves = Uci.GetValue("moves", "fen");
 						book.chess.SetFen(fen);
-						book.chess.MakeMoves(moves);
-						if (isW && String.IsNullOrEmpty(fen) && book.chess.Is2ToEnd(out string myMove, out string enMove))
+						book.chess.MakeMoves(lastMoves);
+						if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(fen))
+							analyze = true;
+						if (String.IsNullOrEmpty(fen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || (teacherProcess != null)))
 						{
-							string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+							string[] am = lastMoves.Split(' ');
 							List<string> movesUci = new List<string>();
 							foreach (string m in am)
 								movesUci.Add(m);
 							movesUci.Add(myMove);
 							movesUci.Add(enMove);
-							if(isLba)
-								book.LoadFromFile();
-							book.AddUci(movesUci, bookLimitW);
-							book.SaveToFile();
+							if (isLba)
+								fileLoaded = book.LoadFromFile();
+							if (isW)
+								book.AddUci(movesUci, bookLimitW);
+							if (teacherProcess == null)
+							{
+								if (fileLoaded)
+									book.SaveToFile();
+							}
+							else
+							{
+								string[] tm = analyzeMoves.Split(' ');
+								int limit1 = bookLimitW == 0 ? movesUci.Count : bookLimitW;
+								int limit2 = tm.Length == 0 ? movesUci.Count : tm.Length;
+								int limit = limit1 > limit2 ? limit2 : limit1;
+								book.AddUci(movesUci, limit);
+								TeacherWriteLine("stop");
+							}
 						}
 						break;
 					case "go":
@@ -211,13 +309,30 @@ namespace NSProgram
 							move = book.GetMove(rnd);
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
-						else if (engineName == "")
-							Console.WriteLine("enginemove");
 						else
-							myProcess.StandardInput.WriteLine(msg);
+						{
+							if ((teacherProcess != null) && analyze)
+							{
+								analyzeMoves = lastMoves;
+								TeacherWriteLine("stop");
+								TeacherWriteLine($"position startpos moves {analyzeMoves}");
+								TeacherWriteLine("go infinite");
+							}
+							if (engineProcess == null)
+							{
+								if (analyze)
+									Console.WriteLine($"enginemove analyze {lastMoves}");
+								else
+									Console.WriteLine("enginemove");
+							}
+							else
+								engineProcess.StandardInput.WriteLine(msg);
+							analyze = false;
+						}
 						break;
 				}
 			} while (Uci.command != "quit");
+			TeacherTerminate();
 		}
 	}
 }
