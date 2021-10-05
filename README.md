@@ -37,5 +37,3 @@ BookReaderMem.exe **-bf bigmem.mem -w 100K -ef stockfish.exe**<br/>
 BookReaderMem.exe **bigmem -ef stockfish.exe -w 100K**
 
 The program will first try to find move in chess opening book named bigmem.mem, and if it doesn't find any move in it, it will run a chess engine named stockfish.exe. If engine loose game, winner moves will be added to the book. If the book does not exist, the program will create it. 100k means that the book will grow to 100 000 moves, after exceeding this number, the less significant moves will be removed to make room for new ones.
-
-
