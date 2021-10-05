@@ -206,7 +206,6 @@ namespace NSProgram
    0x31D71DCE64B2C310, 0xF165B587DF898190, 0xA57E6339DD2CF3A0, 0x1EF6E6DBB1961EC9,
    0x70CC73D90BC26E24, 0xE21A6B35DF0C3AD7, 0x003A93D8B2806962, 0x1C99DED33CB890A1,
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
-		bool clear0 = false;
 		const int randMax = 9;
 		string path = String.Empty;
 		public int errors = 0;
@@ -252,11 +251,6 @@ namespace NSProgram
 		public void Clear()
 		{
 			recList.Clear();
-		}
-
-		void Clear0()
-		{
-
 		}
 
 		string GetHeader()
