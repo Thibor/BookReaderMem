@@ -267,6 +267,8 @@ namespace NSProgram
 		{
 			path = p;
 			fileDirectory = Path.GetDirectoryName(p);
+			if (fileDirectory != String.Empty)
+				fileDirectory = $@"{fileDirectory}\";
 			fileShortName = Path.GetFileNameWithoutExtension(p);
 			recList.Clear();
 			return AddFile(p);
@@ -455,9 +457,7 @@ namespace NSProgram
 					rec.mat = MateToMat(mate);
 					if (mate > 0)
 						ca += recList.AddRec(rec);
-					else if (!recList.RecUpdate(rec))
-						break;
-					if (ca > 0)
+					if (ca > 1)
 						break;
 				}
 				else
@@ -559,7 +559,7 @@ namespace NSProgram
 
 		public void SaveToFile()
 		{
-			SaveToFile($@"{fileDirectory}\{fileShortName}{defExt}");
+			SaveToFile($@"{fileDirectory}{fileShortName}{defExt}");
 		}
 
 		sbyte MateToMat(int mate)

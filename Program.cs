@@ -36,8 +36,8 @@ namespace NSProgram
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
-			string ax = "-bf";
-			List<string> listBf = new List<string>();
+			string ax = "-bn";
+			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
 			List<string> listEa = new List<string>();
 			List<string> listTf = new List<string>();
@@ -46,7 +46,7 @@ namespace NSProgram
 				string ac = args[n];
 				switch (ac)
 				{
-					case "-bf"://book file
+					case "-bn"://book name
 					case "-ef"://engine file
 					case "-ea"://engine arguments
 					case "-rnd"://random moves
@@ -66,8 +66,8 @@ namespace NSProgram
 					default:
 						switch (ax)
 						{
-							case "-bf":
-								listBf.Add(ac);
+							case "-bn":
+								listBn.Add(ac);
 								break;
 							case "-ef":
 								listEf.Add(ac);
@@ -95,14 +95,14 @@ namespace NSProgram
 						break;
 				}
 			}
-			string bookFile = String.Join(" ", listBf);
+			string bookName = String.Join(" ", listBn);
 			string engineFile = String.Join(" ", listEf);
 			string teacherFile = String.Join(" ", listTf);
 			string arguments = String.Join(" ", listEa);
-			string ext = Path.GetExtension(bookFile);
+			string ext = Path.GetExtension(bookName);
 			if (String.IsNullOrEmpty(ext))
-				bookFile = $"{bookFile}{CBookMem.defExt}";
-			bool fileLoaded = book.LoadFromFile(bookFile);
+				bookName = $"{bookName}{CBookMem.defExt}";
+			bool fileLoaded = book.LoadFromFile(bookName);
 			if (fileLoaded)
 				Console.WriteLine($"info string book on");
 
@@ -245,7 +245,6 @@ namespace NSProgram
 								book.ShowMoves(true);
 							break;
 						case "moves":
-							book.SaveToFile();
 							book.InfoMoves(Uci.GetValue(2, 0));
 							break;
 						case "structure":
@@ -293,11 +292,14 @@ namespace NSProgram
 							}
 							else
 							{
-								string[] tm = analyzeMoves.Split(' ');
-								int limit1 = bookLimitW == 0 ? movesUci.Count : bookLimitW;
-								int limit2 = tm.Length == 0 ? movesUci.Count : tm.Length;
-								int limit = limit1 > limit2 ? limit2 : limit1;
-								book.AddUci(movesUci, limit);
+								if (!isW)
+								{
+									string[] tm = analyzeMoves.Split(' ');
+									int limit1 = bookLimitW == 0 ? movesUci.Count : bookLimitW;
+									int limit2 = tm.Length == 0 ? movesUci.Count : tm.Length;
+									int limit = limit1 > limit2 ? limit2 : limit1;
+									book.AddUci(movesUci, limit);
+								}
 								TeacherWriteLine("stop");
 							}
 						}
