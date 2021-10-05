@@ -103,7 +103,7 @@ namespace NSProgram
 			if (String.IsNullOrEmpty(ext))
 				bookName = $"{bookName}{CBookMem.defExt}";
 			bool fileLoaded = book.LoadFromFile(bookName);
-			if (fileLoaded)
+			if (fileLoaded && (book.recList.Count > 0))
 				Console.WriteLine($"info string book on");
 
 			Process engineProcess = null;
@@ -272,7 +272,10 @@ namespace NSProgram
 						book.chess.SetFen(fen);
 						book.chess.MakeMoves(lastMoves);
 						if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(fen))
+						{
 							analyze = true;
+							TeacherWriteLine("stop");
+						}
 						if (String.IsNullOrEmpty(fen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || (teacherProcess != null)))
 						{
 							string[] am = lastMoves.Split(' ');
