@@ -32,10 +32,13 @@ namespace NSProgram
 			/// Random moves factor.
 			/// </summary>
 			int rnd = 0;
+			int lastLength = 0;
 			string analyzeMoves = String.Empty;
+			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
+			object locker = new object();
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
@@ -102,8 +105,8 @@ namespace NSProgram
 			string ext = Path.GetExtension(bookName);
 			if (String.IsNullOrEmpty(ext))
 				bookName = $"{bookName}{CBookMem.defExt}";
-			bool fileLoaded = book.LoadFromFile(bookName);
-			if (fileLoaded && (book.recList.Count > 0))
+			bool bookLoaded = book.LoadFromFile(bookName);
+			if (bookLoaded && (book.recList.Count > 0))
 				Console.WriteLine($"info string book on");
 
 			Process engineProcess = null;
@@ -154,12 +157,13 @@ namespace NSProgram
 					{
 						string[] tokens = e.Data.Trim().Split(' ');
 						if (tokens[0] == "bestmove")
-						{
-							string nm = $"{analyzeMoves} {tokens[1]}";
-							book.AddUci(nm);
-							if (fileLoaded)
-								book.SaveToFile();
-						}
+							lock (locker)
+							{
+								string nm = $"{analyzeMoves} {tokens[1]}";
+								book.AddUciMate(nm,lastLength);
+								if (bookLoaded)
+									book.SaveToFile();
+							}
 					}
 				}
 				catch { }
@@ -186,7 +190,7 @@ namespace NSProgram
 			}
 
 
-			if (isW || (teacherProcess != null))
+			if (bookLoaded && (isW || (teacherProcess != null)))
 				Console.WriteLine($"log {book.recList.Count:N0} moves");
 			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
 			do
@@ -267,50 +271,47 @@ namespace NSProgram
 				switch (Uci.command)
 				{
 					case "position":
-						string fen = Uci.GetValue("fen", "moves");
+						lastFen = Uci.GetValue("fen", "moves");
 						lastMoves = Uci.GetValue("moves", "fen");
-						book.chess.SetFen(fen);
-						book.chess.MakeMoves(lastMoves);
-						if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(fen))
+						lock (locker)
 						{
-							analyze = true;
-							TeacherWriteLine("stop");
-						}
-						if (String.IsNullOrEmpty(fen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || (teacherProcess != null)))
-						{
-							string[] am = lastMoves.Split(' ');
-							List<string> movesUci = new List<string>();
-							foreach (string m in am)
-								movesUci.Add(m);
-							movesUci.Add(myMove);
-							movesUci.Add(enMove);
-							if (isLba)
-								fileLoaded = book.LoadFromFile();
-							if (isW)
-								book.AddUci(movesUci, bookLimitW);
-							if (teacherProcess == null)
+							book.chess.SetFen(lastFen);
+							book.chess.MakeMoves(lastMoves);
+							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
-								if (fileLoaded)
-									book.SaveToFile();
-							}
-							else
-							{
-								if (!isW)
-								{
-									string[] tm = analyzeMoves.Split(' ');
-									int limit1 = bookLimitW == 0 ? movesUci.Count : bookLimitW;
-									int limit2 = tm.Length == 0 ? movesUci.Count : tm.Length;
-									int limit = limit1 > limit2 ? limit2 : limit1;
-									book.AddUci(movesUci, limit);
-								}
+								analyze = true;
 								TeacherWriteLine("stop");
+							}
+							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || (teacherProcess != null)))
+							{
+								string[] am = lastMoves.Split(' ');
+								List<string> movesUci = new List<string>();
+								foreach (string m in am)
+									movesUci.Add(m);
+								movesUci.Add(myMove);
+								movesUci.Add(enMove);
+								lastLength = movesUci.Count;
+								if (isLba)
+									bookLoaded = book.LoadFromFile();
+								if (isW)
+									book.AddUciMate(movesUci,lastLength);
+								if (teacherProcess == null)
+								{
+									if (bookLoaded)
+										book.SaveToFile();
+								}
+								else
+									TeacherWriteLine("stop");
 							}
 						}
 						break;
 					case "go":
 						string move = String.Empty;
-						if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
-							move = book.GetMove(rnd);
+						lock (locker)
+						{
+							if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
+								move = book.GetMove(lastFen, lastMoves, rnd);
+						}
 						if (move != String.Empty)
 							Console.WriteLine($"bestmove {move}");
 						else

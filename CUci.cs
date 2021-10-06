@@ -7,6 +7,11 @@ namespace NSUci
 		public string command;
 		public string[] tokens;
 
+		public static string[] Split(string s)
+		{
+			return s.Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+		}
+
 		public int GetIndex(string key, int def = -1)
 		{
 			for (int n = 0; n < tokens.Length; n++)
@@ -74,7 +79,7 @@ namespace NSUci
 		{
 			if (String.IsNullOrEmpty(msg))
 				msg = String.Empty;
-			tokens = msg.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+			tokens = Split(msg);
 			command = tokens.Length > 0 ? tokens[0] : String.Empty;
 		}
 	}

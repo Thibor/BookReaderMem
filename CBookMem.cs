@@ -426,8 +426,6 @@ namespace NSProgram
 					recList.RecUpdate(rec);
 				}
 			}
-			chess.SetFen();
-			chess.MakeMoves(moves);
 		}
 
 		public int AddUci(string[] moves, int limit = 0)
@@ -439,7 +437,6 @@ namespace NSProgram
 			chess.SetFen();
 			if (!chess.MakeMoves(moves))
 				return 0;
-			bool isMate = chess.GetGameState() == CGameState.mate;
 			chess.SetFen();
 			for (int n = 0; n < limit; n++)
 			{
@@ -449,19 +446,8 @@ namespace NSProgram
 				{
 					hash = GetHash()
 				};
-				if (isMate)
-				{
-					int mate = GetMate(n, count);
-					rec.mat = MateToMat(mate);
-					if (mate > 0)
-						ca += recList.AddRec(rec);
-					if (ca > 1)
-						break;
-				}
-				else
-					ca += recList.AddHash(rec);
+				ca += recList.AddHash(rec);
 			}
-			AddUciBack(moves);
 			return ca;
 		}
 
@@ -473,6 +459,38 @@ namespace NSProgram
 		public int AddUci(List<string> moves, int limit = 0)
 		{
 			return AddUci(moves.ToArray(), limit);
+		}
+
+		public int AddUciMate(string[] moves,int gameLength)
+		{
+			int ca = 0;
+			chess.SetFen();
+			for (int n = 0; n < moves.Length; n++)
+			{
+				string m = moves[n];
+				chess.MakeMove(m, out _);
+				CRec rec = new CRec
+				{
+					hash = GetHash()
+				};
+				int mate = GetMate(n, gameLength);
+				rec.mat = MateToMat(mate);
+				ca += recList.AddRec(rec);
+				if (ca > 1)
+					break;
+			}
+			AddUciBack(moves);
+			return ca;
+		}
+
+		public int AddUciMate(string moves,int gameLength)
+		{
+			return AddUciMate(moves.Trim().Split(' '), gameLength);
+		}
+
+		public int AddUciMate(List<string> moves, int gameLength)
+		{
+			return AddUciMate(moves.ToArray(), gameLength);
 		}
 
 		void RefreshAge()
@@ -666,8 +684,10 @@ namespace NSProgram
 			return emoList;
 		}
 
-		public string GetMove(int rnd)
+		public string GetMove(string fen,string moves,int rnd)
 		{
+			chess.SetFen(fen);
+			chess.MakeMoves(moves);
 			CEmoList emoList = GetEmoList();
 			if (emoList.Count == 0)
 				return String.Empty;

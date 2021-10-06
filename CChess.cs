@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NSUci;
 
 namespace NSChess
 {
@@ -268,7 +269,7 @@ namespace NSChess
 
 		public bool SetFen(string fen = defFen)
 		{
-			if (fen == "")
+			if (String.IsNullOrEmpty(fen))
 				fen = defFen;
 			string[] chunks = fen.Split(' ');
 			if (chunks.Length < 4)
@@ -718,8 +719,7 @@ namespace NSChess
 
 		public bool MakeMoves(string moves)
 		{
-			string[] am = moves.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-			return MakeMoves(am);
+			return MakeMoves(CUci.Split(moves));
 		}
 
 		public bool IsValidMove(int emo)
