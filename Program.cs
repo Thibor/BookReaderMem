@@ -291,7 +291,7 @@ namespace NSProgram
 								movesUci.Add(myMove);
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
-								if (isLba)
+								if (isLba || bookLoaded)
 									bookLoaded = book.LoadFromFile();
 								if (isW)
 									book.AddUciMate(movesUci,lastLength);
