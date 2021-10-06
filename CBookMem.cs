@@ -468,7 +468,8 @@ namespace NSProgram
 			for (int n = 0; n < moves.Length; n++)
 			{
 				string m = moves[n];
-				chess.MakeMove(m, out _);
+				if (!chess.MakeMove(m, out _))
+					return ca;
 				CRec rec = new CRec
 				{
 					hash = GetHash()
