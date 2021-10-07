@@ -233,7 +233,7 @@ namespace NSProgram
 
 		int AgeAvg()
 		{
-			return recList.Count >> 8;
+			return (recList.Count >> 8) + 1;
 		}
 
 		int AgeDel()
