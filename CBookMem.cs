@@ -534,7 +534,7 @@ namespace NSProgram
 			double ageMax = AgeMax();
 			RefreshAge();
 			bool[] arrAct = new bool[0x100];
-			for (int n = 0; n >= 0xff; n++)
+			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
 			arrAct[0] &= (arrAge[0] & 0x1ff) == 0x1ff;
 			try
