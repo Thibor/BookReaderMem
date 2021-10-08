@@ -13,10 +13,6 @@ namespace NSProgram
 		{
 			bool analyze = false;
 			/// <summary>
-			/// Load book before add new moves.
-			/// </summary>
-			bool isLba = false;
-			/// <summary>
 			/// Book can write new moves.
 			/// </summary>
 			bool isW = false;
@@ -57,10 +53,6 @@ namespace NSProgram
 					case "-lw"://limit write in half moves
 					case "-tf"://teacher file
 						ax = ac;
-						break;
-					case "-lba"://load before add
-						ax = ac;
-						isLba = true;
 						break;
 					case "-w"://writable
 						ax = ac;
@@ -160,7 +152,7 @@ namespace NSProgram
 							lock (locker)
 							{
 								string nm = $"{analyzeMoves} {tokens[1]}";
-								book.AddUciMate(nm,lastLength);
+								book.AddUciMate(nm, lastLength);
 								if (bookLoaded)
 									book.SaveToFile();
 							}
@@ -195,86 +187,84 @@ namespace NSProgram
 			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
 			do
 			{
-				string msg = Console.ReadLine().Trim();
-				if (String.IsNullOrEmpty(msg) || (msg == "help") || (msg == "book"))
+				lock (locker)
 				{
-					Console.WriteLine("book load [filename].[mem|pgn|uci|fen] - clear and add moves from file");
-					Console.WriteLine("book save [filename].[mem] - save book to the file");
-					Console.WriteLine("book delete [number x] - delete x moves from the book");
-					Console.WriteLine("book addfile [filename].[mem|png|uci|fen] - add moves to the book from file");
-					Console.WriteLine("book adduci [uci] - add moves in uci format to the book");
-					Console.WriteLine("book addfen [fen] - add position in fen format");
-					Console.WriteLine("book clear - clear all moves from the book");
-					Console.WriteLine("book moves [uci] - make sequence of moves in uci format and shows possible continuations");
-					Console.WriteLine("book structure - show structure of current book");
-					continue;
-				}
-				Uci.SetMsg(msg);
-				int count = book.recList.Count;
-				if (Uci.command == "book")
-				{
-					switch (Uci.tokens[1])
+					string msg = Console.ReadLine().Trim();
+					if (String.IsNullOrEmpty(msg) || (msg == "help") || (msg == "book"))
 					{
-						case "addfen":
-							if (book.AddFen(Uci.GetValue(2, 0)))
-								Console.WriteLine("Fen have been added");
-							else
-								Console.WriteLine("Wrong fen");
-							break;
-						case "addfile":
-							string fn = Uci.GetValue(2, 0);
-							if (File.Exists(fn))
-							{
-								book.AddFile(fn);
-								book.ShowMoves(true);
-							}
-							else Console.WriteLine("File not found");
-							break;
-						case "adduci":
-							book.AddUci(Uci.GetValue(2, 0));
-							Console.WriteLine($"{(book.recList.Count - count):N0} moves have been added");
-							break;
-						case "clear":
-							book.Clear();
-							Console.WriteLine("Book is empty");
-							break;
-						case "delete":
-							int c = book.Delete(Uci.GetInt(2));
-							Console.WriteLine($"{c:N0} moves was deleted");
-							break;
-						case "load":
-							if (!book.LoadFromFile(Uci.GetValue(2, 0)))
-								Console.WriteLine("File not found");
-							else
-								book.ShowMoves(true);
-							break;
-						case "moves":
-							book.InfoMoves(Uci.GetValue(2, 0));
-							break;
-						case "structure":
-							book.InfoStructure();
-							break;
-						case "save":
-							if (book.SaveToFile(Uci.GetValue(2, 0)))
-								Console.WriteLine("The book has been saved");
-							else
-								Console.WriteLine("Writing to the file has failed");
-							break;
-						default:
-							Console.WriteLine($"Unknown command [{Uci.tokens[1]}]");
-							break;
+						Console.WriteLine("book load [filename].[mem|pgn|uci|fen] - clear and add moves from file");
+						Console.WriteLine("book save [filename].[mem] - save book to the file");
+						Console.WriteLine("book delete [number x] - delete x moves from the book");
+						Console.WriteLine("book addfile [filename].[mem|png|uci|fen] - add moves to the book from file");
+						Console.WriteLine("book adduci [uci] - add moves in uci format to the book");
+						Console.WriteLine("book addfen [fen] - add position in fen format");
+						Console.WriteLine("book clear - clear all moves from the book");
+						Console.WriteLine("book moves [uci] - make sequence of moves in uci format and shows possible continuations");
+						Console.WriteLine("book structure - show structure of current book");
+						continue;
 					}
-					continue;
-				}
-				if ((Uci.command != "go") && (engineProcess != null))
-					engineProcess.StandardInput.WriteLine(msg);
-				switch (Uci.command)
-				{
-					case "position":
-						lastFen = Uci.GetValue("fen", "moves");
-						lastMoves = Uci.GetValue("moves", "fen");
-						lock (locker)
+					Uci.SetMsg(msg);
+					int count = book.recList.Count;
+					if (Uci.command == "book")
+					{
+						switch (Uci.tokens[1])
 						{
+							case "addfen":
+								if (book.AddFen(Uci.GetValue(2, 0)))
+									Console.WriteLine("Fen have been added");
+								else
+									Console.WriteLine("Wrong fen");
+								break;
+							case "addfile":
+								string fn = Uci.GetValue(2, 0);
+								if (File.Exists(fn))
+								{
+									book.AddFile(fn);
+									book.ShowMoves(true);
+								}
+								else Console.WriteLine("File not found");
+								break;
+							case "adduci":
+								book.AddUci(Uci.GetValue(2, 0));
+								Console.WriteLine($"{(book.recList.Count - count):N0} moves have been added");
+								break;
+							case "clear":
+								book.Clear();
+								Console.WriteLine("Book is empty");
+								break;
+							case "delete":
+								int c = book.Delete(Uci.GetInt(2));
+								Console.WriteLine($"{c:N0} moves was deleted");
+								break;
+							case "load":
+								book.LoadFromFile(Uci.GetValue(2, 0));
+								book.ShowMoves(true);
+								break;
+							case "moves":
+								book.InfoMoves(Uci.GetValue(2, 0));
+								break;
+							case "structure":
+								book.InfoStructure();
+								break;
+							case "save":
+								if (book.SaveToFile(Uci.GetValue(2, 0)))
+									Console.WriteLine("The book has been saved");
+								else
+									Console.WriteLine("Writing to the file has failed");
+								break;
+							default:
+								Console.WriteLine($"Unknown command [{Uci.tokens[1]}]");
+								break;
+						}
+						continue;
+					}
+					if ((Uci.command != "go") && (engineProcess != null))
+						engineProcess.StandardInput.WriteLine(msg);
+					switch (Uci.command)
+					{
+						case "position":
+							lastFen = Uci.GetValue("fen", "moves");
+							lastMoves = Uci.GetValue("moves", "fen");
 							book.chess.SetFen(lastFen);
 							book.chess.MakeMoves(lastMoves);
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
@@ -291,10 +281,10 @@ namespace NSProgram
 								movesUci.Add(myMove);
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
-								if (isLba || bookLoaded)
+								if (bookLoaded && (isW || (teacherProcess != null)))
 									bookLoaded = book.LoadFromFile();
 								if (isW)
-									book.AddUciMate(movesUci,lastLength);
+									book.AddUciMate(movesUci, lastLength);
 								if (teacherProcess == null)
 								{
 									if (bookLoaded)
@@ -303,41 +293,40 @@ namespace NSProgram
 								else
 									TeacherWriteLine("stop");
 							}
-						}
-						break;
-					case "go":
-						string move = String.Empty;
-						lock (locker)
-						{
+							break;
+						case "go":
+							string move = String.Empty;
 							if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
 								move = book.GetMove(lastFen, lastMoves, rnd);
-						}
-						if (move != String.Empty)
-							Console.WriteLine($"bestmove {move}");
-						else
-						{
-							if ((teacherProcess != null) && analyze)
-							{
-								analyzeMoves = lastMoves;
-								TeacherWriteLine("stop");
-								TeacherWriteLine($"position startpos moves {analyzeMoves}");
-								TeacherWriteLine("go infinite");
-							}
-							if (engineProcess == null)
-							{
-								if (analyze)
-									Console.WriteLine($"enginemove analyze {lastMoves}");
-								else
-									Console.WriteLine("enginemove");
-							}
+							if (move != String.Empty)
+								Console.WriteLine($"bestmove {move}");
 							else
-								engineProcess.StandardInput.WriteLine(msg);
-							analyze = false;
-						}
-						break;
+							{
+								if ((teacherProcess != null) && analyze)
+								{
+									analyzeMoves = lastMoves;
+									TeacherWriteLine("stop");
+									TeacherWriteLine($"position startpos moves {analyzeMoves}");
+									TeacherWriteLine("go infinite");
+								}
+								if (engineProcess == null)
+								{
+									if (analyze)
+										Console.WriteLine($"enginemove analyze {lastMoves}");
+									else
+										Console.WriteLine("enginemove");
+								}
+								else
+									engineProcess.StandardInput.WriteLine(msg);
+								analyze = false;
+							}
+							break;
+						case "quit":
+							TeacherTerminate();
+							break;
+					}
 				}
 			} while (Uci.command != "quit");
-			TeacherTerminate();
 		}
 	}
 }

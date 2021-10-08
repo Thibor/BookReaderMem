@@ -258,9 +258,14 @@ namespace NSProgram
 			return $"{name} {version}";
 		}
 
-		string GetFileName()
+		string GetBookFile()
 		{
 			return $"{fileShortName}{defExt}";
+		}
+
+		string GetBookPath()
+		{
+			return $@"{fileDirectory}{GetBookFile()}";
 		}
 
 		public bool LoadFromFile(string p)
@@ -523,11 +528,6 @@ namespace NSProgram
 
 		public bool SaveToFile(string p)
 		{
-			if (String.IsNullOrEmpty(p))
-				p = GetFileName();
-			string ext = Path.GetExtension(p);
-			if (String.IsNullOrEmpty(ext))
-				p += defExt;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 				Delete(recList.Count - maxRecords);
 			int rand = CChess.random.Next(randMax + 1);
@@ -539,7 +539,7 @@ namespace NSProgram
 			arrAct[0] &= (arrAge[0] & 0x1ff) == 0x1ff;
 			try
 			{
-				using (FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write))
+				using (FileStream fs = File.Open(p + ".tmp", FileMode.Create, FileAccess.Write))
 				{
 					using (BinaryWriter writer = new BinaryWriter(fs))
 					{
@@ -570,6 +570,8 @@ namespace NSProgram
 			{
 				return false;
 			}
+			File.Delete(p);
+			File.Move(p + ".tmp",p);
 			return true;
 		}
 
@@ -580,7 +582,7 @@ namespace NSProgram
 
 		public void SaveToFile()
 		{
-			SaveToFile($@"{fileDirectory}{fileShortName}{defExt}");
+			SaveToFile(GetBookPath());
 		}
 
 		sbyte MateToMat(int mate)
