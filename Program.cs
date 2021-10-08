@@ -281,16 +281,13 @@ namespace NSProgram
 								movesUci.Add(myMove);
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
-								if (bookLoaded && (isW || (teacherProcess != null)))
-									bookLoaded = book.LoadFromFile();
-								if (isW)
-									book.AddUciMate(movesUci, lastLength);
-								if (teacherProcess == null)
+								bookLoaded = book.LoadFromFile();
+								if (bookLoaded && isW || (analyze && (teacherProcess != null)))
 								{
-									if (bookLoaded)
-										book.SaveToFile();
+									book.AddUciMate(movesUci, lastLength);
+									book.SaveToFile();
 								}
-								else
+								if (teacherProcess != null)
 									TeacherWriteLine("stop");
 							}
 							break;
