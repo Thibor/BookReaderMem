@@ -19,15 +19,15 @@ namespace NSProgram
 			/// <summary>
 			/// Limit ply to wrtie.
 			/// </summary>
-			int bookLimitW = 0;
+			int bookLimitW = 32;
 			/// <summary>
 			/// Limit ply to read.
 			/// </summary>
-			int bookLimitR = 0;
+			int bookLimitR = 32;
 			/// <summary>
 			/// Random moves factor.
 			/// </summary>
-			int rnd = 0;
+			int bookRandom = 50;
 			int lastLength = 0;
 			string analyzeMoves = String.Empty;
 			string lastFen = String.Empty;
@@ -73,12 +73,12 @@ namespace NSProgram
 							case "-ea":
 								listEa.Add(ac);
 								break;
-							case "-rnd":
-								rnd = int.TryParse(ac, out int r) ? r : 0;
-								break;
 							case "-w":
 								ac = ac.Replace("K", "000").Replace("M", "000000");
 								book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
+								break;
+							case "-rnd":
+								bookRandom = int.TryParse(ac, out int r) ? r : 0;
 								break;
 							case "-lr":
 								bookLimitR = int.TryParse(ac, out int lr) ? lr : 0;
@@ -183,7 +183,12 @@ namespace NSProgram
 
 
 			if (bookLoaded && (isW || (teacherProcess != null)))
+			{
+				bookRandom = 0;
+				bookLimitR = 0;
+				bookLimitW = 0;
 				Console.WriteLine($"log {book.recList.Count:N0} moves");
+			}
 			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
 			do
 			{
@@ -294,7 +299,7 @@ namespace NSProgram
 						case "go":
 							string move = String.Empty;
 							if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
-								move = book.GetMove(lastFen, lastMoves, rnd);
+								move = book.GetMove(lastFen, lastMoves, bookRandom);
 							if (move != String.Empty)
 								Console.WriteLine($"bestmove {move}");
 							else
