@@ -10,8 +10,8 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **-tf** chess Teacher File<br/>
 **-ea** chess Engine Arguments<br/>
 **-w** add new moves to the book<br/>
-**-lr** Limit maximum ply depth when Read from book (default 0) 0 means no limit<br/>
-**-lw** Limit maximum ply depth when Write to book (default 0) 0 means no limit<br/>
+**-lr** Limit maximum ply depth when Read from book (default 32) 0 means no limit<br/>
+**-lw** Limit maximum ply depth when Write to book (default 32) 0 means no limit<br/>
 
 ## Console commands
 
