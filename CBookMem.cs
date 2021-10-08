@@ -565,13 +565,13 @@ namespace NSProgram
 						}
 					}
 				}
+				File.Delete(p);
+				File.Move(p + ".tmp", p);
 			}
 			catch
 			{
 				return false;
 			}
-			File.Delete(p);
-			File.Move(p + ".tmp",p);
 			return true;
 		}
 
