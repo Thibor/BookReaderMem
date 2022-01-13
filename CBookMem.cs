@@ -286,7 +286,7 @@ namespace NSProgram
 
 		public bool AddFile(string p)
 		{
-			if (!File.Exists(p))
+			if (!File.Exists(p) && (!File.Exists(p + ".tmp")))
 				return true;
 			if (String.IsNullOrEmpty(fileShortName))
 				fileShortName = Path.GetFileNameWithoutExtension(p);
@@ -304,6 +304,16 @@ namespace NSProgram
 
 		bool AddFileMem(string p)
 		{
+			string pt = p + ".tmp";
+			try
+			{
+				if (!File.Exists(p) && File.Exists(pt))
+					File.Move(pt, p);
+			}
+			catch
+			{
+				return false;
+			}
 			try
 			{
 				using (FileStream fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -476,6 +486,8 @@ namespace NSProgram
 				if (!chess.MakeMove(m, out _))
 					return ca;
 				int mate = GetMate(n, gameLength);
+				if ((n == moves.Length - 1) && (mate < 0))
+					mate--;
 				CRec rec = new CRec
 				{
 					hash = GetHash(),
@@ -528,6 +540,7 @@ namespace NSProgram
 
 		public bool SaveToFile(string p)
 		{
+			string pt = p + ".tmp";
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 				Delete(recList.Count - maxRecords);
 			int rand = CChess.random.Next(randMax + 1);
@@ -539,7 +552,7 @@ namespace NSProgram
 			arrAct[0] &= (arrAge[0] & 0x1ff) == 0x1ff;
 			try
 			{
-				using (FileStream fs = File.Open(p + ".tmp", FileMode.Create, FileAccess.Write))
+				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
 				{
 					using (BinaryWriter writer = new BinaryWriter(fs))
 					{
@@ -565,8 +578,24 @@ namespace NSProgram
 						}
 					}
 				}
-				File.Delete(p);
-				File.Move(p + ".tmp", p);
+			}
+			catch
+			{
+				return false;
+			}
+			try
+			{
+				if (File.Exists(p) && File.Exists(pt))
+					File.Delete(p);
+			}
+			catch
+			{
+				return false;
+			}
+			try
+			{
+				if (!File.Exists(p) && File.Exists(pt))
+					File.Move(pt, p);
 			}
 			catch
 			{

@@ -11,6 +11,7 @@ namespace NSProgram
 
 		static void Main(string[] args)
 		{
+			bool quit = false;
 			bool analyze = false;
 			/// <summary>
 			/// Book can write new moves.
@@ -151,10 +152,11 @@ namespace NSProgram
 						if (tokens[0] == "bestmove")
 							lock (locker)
 							{
+								if (!quit) {
 								string nm = $"{analyzeMoves} {tokens[1]}";
 								book.AddUciMate(nm, lastLength);
 								if (bookLoaded)
-									book.SaveToFile();
+									book.SaveToFile(); }
 							}
 					}
 				}
@@ -275,6 +277,7 @@ namespace NSProgram
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
 								analyze = true;
+								quit = false;
 								TeacherWriteLine("stop");
 							}
 							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || (teacherProcess != null)))
@@ -324,6 +327,7 @@ namespace NSProgram
 							}
 							break;
 						case "quit":
+							quit = true;
 							TeacherTerminate();
 							break;
 					}
