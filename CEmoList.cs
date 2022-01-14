@@ -21,18 +21,14 @@ namespace NSProgram
 				Reverse();
 				rnd = 200 - rnd;
 			}
-			int r = Count;
 			CEmo emo = this[0];
 			for (int n = 1; n < Count; n++)
 			{
 				CEmo e = this[n];
 				if (emo.mat - e.mat >= rnd)
-				{
-					r = n;
-					break;
-				}
+					return this[CChess.random.Next(n)];
 			}
-			return this[CChess.random.Next(r)];
+			return this[CChess.random.Next(Count)];
 		}
 
 		public void SortMat()
