@@ -110,6 +110,14 @@ namespace NSProgram
 			return null;
 		}
 
+		public bool IsHash(ulong hash)
+		{
+			int index = FindHash(hash);
+			if (index < Count)
+				return this[index].hash == hash;
+			return false;
+		}
+
 		public void SortHash()
 		{
 			Sort(delegate (CRec r1, CRec r2)

@@ -485,9 +485,14 @@ namespace NSProgram
 				string m = moves[n];
 				if (!chess.MakeMove(m, out _))
 					return ca;
+				ulong hash = GetHash();
 				int mate = GetMate(n, gameLength);
-				if ((n == moves.Length - 1) && (mate < 0))
+				if ((n == moves.Length - 1) && (mate < 0)) 
+				{
+					if (recList.IsHash(hash))
+						break;
 					mate--;
+				}
 				CRec rec = new CRec
 				{
 					hash = GetHash(),
@@ -726,6 +731,7 @@ namespace NSProgram
 			CEmo bst = emoList.GetRnd(rnd);
 			string umo = chess.EmoToUmo(bst.emo);
 			int mate = MatToMate(bst.mat);
+			Console.WriteLine($"info score mate {mate} bookmoves {emoList.Count}");
 			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} ({emoList.Count})");
 			return umo;
 		}
