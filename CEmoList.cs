@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NSChess;
 
 namespace NSProgram
@@ -12,6 +13,8 @@ namespace NSProgram
 
 	class CEmoList : List<CEmo>
 	{
+		readonly static Random rnd = new Random();
+
 		public CEmo GetRnd(int rnd = 0)
 		{
 			if (Count == 0)
@@ -21,18 +24,25 @@ namespace NSProgram
 				Reverse();
 				rnd = 200 - rnd;
 			}
-			CEmo emo = this[0];
-			for (int n = 1; n < Count; n++)
+			int n = (Count * rnd) / 100;
+			return this[CChess.random.Next(n)];
+		}
+
+		public void Shuffle()
+		{
+			int n = Count;
+			while (n > 1)
 			{
-				CEmo e = this[n];
-				if (emo.mat - e.mat >= rnd)
-					return this[CChess.random.Next(n)];
+				int k = rnd.Next(--n + 1);
+				CEmo value = this[k];
+				this[k] = this[n];
+				this[n] = value;
 			}
-			return this[CChess.random.Next(Count)];
 		}
 
 		public void SortMat()
 		{
+			Shuffle();
 			Sort(delegate (CEmo e1, CEmo e2)
 			{
 				int r = e2.mat - e1.mat;
