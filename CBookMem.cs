@@ -554,9 +554,8 @@ namespace NSProgram
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			arrAct[0] &= (arrAge[0] & 0x1ff) == 0x1ff;
-			if (arrAct[0])
-				Console.WriteLine("log book clear");
+			arrAct[0] &= (arrAge[255] & 0xf) == 0xf;
+			int deleted = 0;
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -573,10 +572,13 @@ namespace NSProgram
 							if (arrAct[rec.age] && (rand-- == 0))
 							{
 								rand = randMax;
-								if (ageMax > 0)
+								if (rec.age > 0)
 									rec.age--;
 								else
+								{
+									deleted++;
 									continue;
+								}
 							}
 							WriteUInt64(writer, rec.hash);
 							writer.Write(rec.mat);
@@ -608,6 +610,8 @@ namespace NSProgram
 			{
 				return false;
 			}
+			if (deleted > 0)
+				Console.WriteLine($"log book delete {deleted:N0} moves");
 			return true;
 		}
 
