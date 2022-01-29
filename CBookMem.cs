@@ -611,7 +611,7 @@ namespace NSProgram
 				return false;
 			}
 			if (deleted > 0)
-				Console.WriteLine($"log book delete {deleted:N0} moves");
+				Console.WriteLine($"log book {recList.Count:N0} delete {deleted:N0} moves");
 			return true;
 		}
 
