@@ -731,8 +731,8 @@ namespace NSProgram
 			CEmo bst = emoList.GetRnd(rnd);
 			string umo = chess.EmoToUmo(bst.emo);
 			int mate = MatToMate(bst.mat);
-			Console.WriteLine($"info score mate {mate} bookmoves {emoList.Count}");
-			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} ({emoList.Count})");
+			Console.WriteLine($"info score mate {mate} possible {emoList.Count} age {bst.age}");
+			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} possible {emoList.Count} age {bst.age}");
 			return umo;
 		}
 
