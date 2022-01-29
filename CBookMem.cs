@@ -554,7 +554,7 @@ namespace NSProgram
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			arrAct[0] &= ((arrAge[0]^arrAge[255]) & 0xf) == 0xf;
+			arrAct[0] &= arrAct[1] & (((arrAge[0]^arrAge[255]) & 0xf) == 0xf);
 			int deleted = 0;
 			try
 			{
