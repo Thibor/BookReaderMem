@@ -487,7 +487,7 @@ namespace NSProgram
 					return ca;
 				ulong hash = GetHash();
 				int mate = GetMate(n, gameLength);
-				if ((n == moves.Length - 1) && (mate < 0)) 
+				if ((n == moves.Length - 1) && (mate < 0))
 				{
 					if (recList.IsHash(hash))
 						break;
@@ -555,6 +555,8 @@ namespace NSProgram
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
 			arrAct[0] &= (arrAge[0] & 0x1ff) == 0x1ff;
+			if (arrAct[0])
+				Console.WriteLine("log book clear");
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))

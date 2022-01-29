@@ -189,7 +189,6 @@ namespace NSProgram
 				bookRandom = 0;
 				bookLimitR = 0;
 				bookLimitW = 0;
-				Console.WriteLine($"log {book.recList.Count:N0} moves");
 			}
 			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
 			do
