@@ -15,10 +15,20 @@ namespace NSProgram
 	{
 		readonly static Random rnd = new Random();
 
+		public CEmo GetEmo(int emo)
+		{
+			foreach (CEmo e in this)
+				if (e.emo == emo)
+					return e;
+			return null;
+		}
+
 		public CEmo GetRnd(int rnd = 0)
 		{
 			if (Count == 0)
 				return null;
+			if (rnd < 0)
+				rnd = 0;
 			if (rnd > 100)
 			{
 				Reverse();

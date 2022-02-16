@@ -208,6 +208,7 @@ namespace NSProgram
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		const int randMax = 9;
 		string path = String.Empty;
+		public int bookAdd;
 		public int errors = 0;
 		public int maxRecords = 0;
 		public const string name = "BookReaderMem";
@@ -499,7 +500,7 @@ namespace NSProgram
 					mat = MateToMat(mate)
 				};
 				ca += recList.AddRec(rec);
-				if (ca > 1)
+				if ((bookAdd > 0) && (ca >= bookAdd))
 					break;
 			}
 			AddUciBack(moves);
@@ -702,7 +703,29 @@ namespace NSProgram
 			return key;
 		}
 
-		public CEmoList GetEmoList()
+		public CEmoList GetNotUsedList(CEmoList el)
+		{
+			if (el.Count == 0)
+				return el;
+			CEmoList emoList = new CEmoList();
+			List<int> moves = chess.GenerateValidMoves(out _, true);
+			foreach (int m in moves)
+			{
+				if(el.GetEmo(m) == null)
+				{
+					CEmo emo = new CEmo
+					{
+						emo = m
+					};
+					emoList.Add(emo);
+				}
+			}
+			if(emoList.Count > 0)
+				return emoList;
+			return el;
+		}
+
+			public CEmoList GetEmoList()
 		{
 			CEmoList emoList = new CEmoList();
 			List<int> moves = chess.GenerateValidMoves(out _, true);
@@ -732,6 +755,11 @@ namespace NSProgram
 			chess.SetFen(fen);
 			chess.MakeMoves(moves);
 			CEmoList emoList = GetEmoList();
+			if(rnd > 200)
+			{
+				rnd = 100;
+				emoList = GetNotUsedList(emoList);
+			}
 			if (emoList.Count == 0)
 				return String.Empty;
 			CEmo bst = emoList.GetRnd(rnd);

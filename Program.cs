@@ -18,6 +18,10 @@ namespace NSProgram
 			/// </summary>
 			bool isW = false;
 			/// <summary>
+			/// Moves add to book.
+			/// </summary>
+			int bookAdd = 3;
+			/// <summary>
 			/// Limit ply to wrtie.
 			/// </summary>
 			int bookLimitW = 32;
@@ -46,6 +50,7 @@ namespace NSProgram
 				string ac = args[n];
 				switch (ac)
 				{
+					case "-add"://moves add to book
 					case "-bn"://book name
 					case "-ef"://engine file
 					case "-ea"://engine arguments
@@ -77,6 +82,9 @@ namespace NSProgram
 							case "-w":
 								ac = ac.Replace("K", "000").Replace("M", "000000");
 								book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
+								break;
+							case "-add":
+								bookAdd = int.TryParse(ac, out int a) ? a : 0;
 								break;
 							case "-rnd":
 								bookRandom = int.TryParse(ac, out int r) ? r : 0;
@@ -191,6 +199,7 @@ namespace NSProgram
 				bookLimitW = 0;
 			}
 			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
+			book.bookAdd = bookAdd;
 			do
 			{
 				lock (locker)
