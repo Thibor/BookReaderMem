@@ -12,6 +12,9 @@ namespace NSProgram
 		static void Main(string[] args)
 		{
 			bool quit = false;
+			/// <summary>
+			/// Can start teacher.
+			/// </summary>
 			bool analyze = false;
 			/// <summary>
 			/// Book can write new moves.
@@ -160,11 +163,14 @@ namespace NSProgram
 						if (tokens[0] == "bestmove")
 							lock (locker)
 							{
-								if (!quit) {
-								string nm = $"{analyzeMoves} {tokens[1]}";
-								book.AddUciMate(nm, lastLength);
-								if (bookLoaded)
-									book.SaveToFile(); }
+								if (!quit)
+								{
+									analyzeMoves = $"{analyzeMoves} {tokens[1]}";
+									book.AddUciMate(analyzeMoves, lastLength);
+									if (bookLoaded)
+										book.SaveToFile();
+									Console.WriteLine($"info string analyze finish {analyzeMoves}");
+								}
 							}
 					}
 				}
@@ -284,7 +290,7 @@ namespace NSProgram
 							book.chess.MakeMoves(lastMoves);
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
-								analyze = true;
+								analyze = teacherProcess != null;
 								quit = false;
 								TeacherWriteLine("stop");
 							}
@@ -298,13 +304,16 @@ namespace NSProgram
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
 								bookLoaded = book.LoadFromFile();
-								if (bookLoaded && isW || (analyze && (teacherProcess != null)))
+								if (bookLoaded && (isW || analyze))
 								{
 									book.AddUciMate(movesUci, lastLength);
 									book.SaveToFile();
 								}
 								if (teacherProcess != null)
+								{
 									TeacherWriteLine("stop");
+									Console.WriteLine($"info string analyze stop {analyzeMoves}");
+								}
 							}
 							break;
 						case "go":
@@ -315,23 +324,19 @@ namespace NSProgram
 								Console.WriteLine($"bestmove {move}");
 							else
 							{
-								if ((teacherProcess != null) && analyze)
+								if (analyze && (book.chess.GenerateValidMoves(out _).Count > 1))
 								{
 									analyzeMoves = lastMoves;
 									TeacherWriteLine("stop");
 									TeacherWriteLine($"position startpos moves {analyzeMoves}");
 									TeacherWriteLine("go infinite");
+									analyze = false;
+									Console.WriteLine($"info string analyze start {analyzeMoves}");
 								}
 								if (engineProcess == null)
-								{
-									if (analyze)
-										Console.WriteLine($"enginemove analyze {lastMoves}");
-									else
-										Console.WriteLine("enginemove");
-								}
+									Console.WriteLine("enginemove");
 								else
 									engineProcess.StandardInput.WriteLine(msg);
-								analyze = false;
 							}
 							break;
 						case "quit":
