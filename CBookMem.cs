@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NSChess;
+using RapLog;
 
 namespace NSProgram
 {
@@ -611,8 +612,12 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (deleted > 0)
+			if (arrAct[255])
+			{
+				if (Program.isLog)
+					CRapLog.Add($"book {recList.Count:N0} delete {deleted:N0}");
 				Console.WriteLine($"log book {recList.Count:N0} delete {deleted:N0} moves");
+			}
 			return true;
 		}
 
@@ -626,7 +631,7 @@ namespace NSProgram
 			SaveToFile(GetBookPath());
 		}
 
-		sbyte MateToMat(int mate)
+		public static sbyte MateToMat(int mate)
 		{
 			if (mate > 0)
 			{
@@ -643,7 +648,7 @@ namespace NSProgram
 			return (sbyte)mate;
 		}
 
-		int MatToMate(sbyte mat)
+		public static int MatToMate(sbyte mat)
 		{
 			if (mat >= 0)
 				return 128 - mat;
@@ -711,7 +716,7 @@ namespace NSProgram
 			List<int> moves = chess.GenerateValidMoves(out _, true);
 			foreach (int m in moves)
 			{
-				if(el.GetEmo(m) == null)
+				if (el.GetEmo(m) == null)
 				{
 					CEmo emo = new CEmo
 					{
@@ -720,12 +725,12 @@ namespace NSProgram
 					emoList.Add(emo);
 				}
 			}
-			if(emoList.Count > 0)
+			if (emoList.Count > 0)
 				return emoList;
 			return el;
 		}
 
-			public CEmoList GetEmoList()
+		public CEmoList GetEmoList()
 		{
 			CEmoList emoList = new CEmoList();
 			List<int> moves = chess.GenerateValidMoves(out _, true);
@@ -755,7 +760,7 @@ namespace NSProgram
 			chess.SetFen(fen);
 			chess.MakeMoves(moves);
 			CEmoList emoList = GetEmoList();
-			if(rnd > 200)
+			if (rnd > 200)
 			{
 				rnd = 100;
 				emoList = GetNotUsedList(emoList);

@@ -48,6 +48,7 @@
     <Compile Include="CBookMem.cs" />
     <Compile Include="CChessExt.cs" />
     <Compile Include="CEmoList.cs" />
+    <Compile Include="CRapLog.cs" />
     <Compile Include="CRecList.cs" />
     <Compile Include="CUci.cs" />
     <Compile Include="Program.cs" />

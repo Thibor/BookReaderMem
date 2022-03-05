@@ -34,8 +34,19 @@ namespace NSProgram
 				Reverse();
 				rnd = 200 - rnd;
 			}
-			int n = (Count * rnd) / 100;
-			return this[CChess.random.Next(n)];
+			CEmo bst = this[0];
+			double bd = -200.0;
+			double h = rnd / 100.0;
+			foreach(CEmo e in this)
+			{
+				double cd = CBookMem.MatToMate(e.mat) * (1.0 - CChess.random.NextDouble() * h);
+				if (bd < cd)
+				{
+					bd = cd;
+					bst = e;
+				}
+			}
+			return bst;
 		}
 
 		public void Shuffle()

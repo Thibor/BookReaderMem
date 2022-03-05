@@ -8,6 +8,10 @@ namespace NSProgram
 {
 	class Program
 	{
+		/// <summary>
+		/// Book can write log file.
+		/// </summary>
+		public static bool isLog = false;
 
 		static void Main(string[] args)
 		{
@@ -62,6 +66,10 @@ namespace NSProgram
 					case "-lw"://limit write in half moves
 					case "-tf"://teacher file
 						ax = ac;
+						break;
+					case "-log"://writable
+						ax = ac;
+						isLog = true;
 						break;
 					case "-w"://writable
 						ax = ac;
