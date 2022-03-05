@@ -39,7 +39,7 @@ namespace NSProgram
 			double h = rnd / 100.0;
 			foreach(CEmo e in this)
 			{
-				double cd = CBookMem.MatToMate(e.mat) * (1.0 - CChess.random.NextDouble() * h);
+				double cd = (e.mat + 128.0) * (1.0 - CChess.random.NextDouble() * h);
 				if (bd < cd)
 				{
 					bd = cd;
