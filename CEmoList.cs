@@ -29,17 +29,16 @@ namespace NSProgram
 				return null;
 			if (rnd < 0)
 				rnd = 0;
-			if (rnd > 100)
-			{
-				Reverse();
+			bool r = rnd > 100;
+			if (r)
 				rnd = 200 - rnd;
-			}
 			CEmo bst = this[0];
 			double bd = -200.0;
 			double h = rnd / 100.0;
 			foreach(CEmo e in this)
 			{
-				double cd = (e.mat + 128.0) * (1.0 - CChess.random.NextDouble() * h);
+				double m = r ? 127.0 - e.mat : e.mat + 128.0;
+				double cd = m * (1.0 - CChess.random.NextDouble() * h);
 				if (bd < cd)
 				{
 					bd = cd;
