@@ -6,19 +6,34 @@ using System.Reflection;
 
 namespace RapLog
 {
-	public static class CRapLog
+	public class CRapLog
 	{
+		bool addDate;
+		int max;
+		string path;
 
-		public static void Add(string m)
+		public CRapLog(string p = "",int m = 100,bool a = true)
+		{
+			path = p;
+			max = m;
+			addDate = a;
+			if(path == String.Empty) {
+				string name = Assembly.GetExecutingAssembly().GetName().Name + ".log";
+				path = new FileInfo(name).FullName.ToString();
+			}
+		}
+
+		public void Add(string m)
 		{
 			List<string> list = new List<string>();
-			string name = Assembly.GetExecutingAssembly().GetName().Name;
-			string path = new FileInfo(name + ".log").FullName.ToString();
 			if (File.Exists(path))
 				list = File.ReadAllLines(path).ToList();
-			list.Insert(0, $"{DateTime.Now} {m}");
-			int count = list.Count - 100;
-			if (count > 0)
+			if (addDate)
+				list.Insert(0, $"{DateTime.Now} {m}");
+			else
+				list.Add(m);
+			int count = list.Count - max;
+			if ((count > 0) && (max > 0))
 				list.RemoveRange(100, count);
 			File.WriteAllLines(path, list);
 		}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using NSUci;
+using RapLog;
 
 namespace NSProgram
 {
@@ -35,17 +36,18 @@ namespace NSProgram
 			/// <summary>
 			/// Limit ply to read.
 			/// </summary>
-			int bookLimitR = 32;
+			int bookLimitR = 0xf;
 			/// <summary>
 			/// Random moves factor.
 			/// </summary>
-			int bookRandom = 50;
+			int bookRandom = 60;
 			int lastLength = 0;
 			string analyzeMoves = String.Empty;
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
 			CBookMem book = new CBookMem();
+			CRapLog logUci = new CRapLog("teacher.uci",0,false);
 			object locker = new object();
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
@@ -178,6 +180,8 @@ namespace NSProgram
 									if (bookLoaded)
 										book.SaveToFile();
 									Console.WriteLine($"info string analyze finish {analyzeMoves}");
+									if (isLog)
+										logUci.Add(analyzeMoves);
 								}
 							}
 					}

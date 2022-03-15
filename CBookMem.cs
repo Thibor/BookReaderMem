@@ -220,6 +220,7 @@ namespace NSProgram
 		public CChessExt chess = new CChessExt();
 		readonly int[] arrAge = new int[0x100];
 		public CRecList recList = new CRecList();
+		public CRapLog log = new CRapLog();
 
 		public void ShowMoves(bool last = false)
 		{
@@ -556,7 +557,10 @@ namespace NSProgram
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			arrAct[0] &= arrAct[255] & (((arrAge[0] + arrAge[255]) & 0xff) == 0xff);
+			int del0 = -1;
+			if (arrAct[0] && arrAct[0xff])
+				del0 = CChess.random.Next(arrAge[0] + 1);
+			arrAct[0] = false;
 			int deleted = 0;
 			try
 			{
@@ -581,6 +585,11 @@ namespace NSProgram
 									deleted++;
 									continue;
 								}
+							}
+							if ((rec.age == 0) && (--del0 == 0))
+							{
+								deleted++;
+								continue;
 							}
 							WriteUInt64(writer, rec.hash);
 							writer.Write(rec.mat);
@@ -615,8 +624,8 @@ namespace NSProgram
 			if (arrAct[255])
 			{
 				if (Program.isLog)
-					CRapLog.Add($"book {recList.Count:N0} delete {deleted:N0}");
-				Console.WriteLine($"log book {recList.Count:N0} delete {deleted:N0} moves");
+					log.Add($"book {recList.Count:N0} delete {deleted:N0}");
+				Console.WriteLine($"log book {recList.Count:N0} delete {deleted:N0}");
 			}
 			return true;
 		}
