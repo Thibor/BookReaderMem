@@ -57,8 +57,10 @@ namespace NSProgram
 
 		public int RecDelete(int count)
 		{
+			if (count == 0)
+				return 0;
 			int c = Count;
-			if ((count == 0) || (count >= Count))
+			if (count >= Count)
 				Clear();
 			else
 			{
