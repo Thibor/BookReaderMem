@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace NSProgram
 {
@@ -11,6 +12,7 @@ namespace NSProgram
 
 	class CRecList : List<CRec>
 	{
+		readonly static Random rnd = new Random();
 
 		public int AddRec(CRec rec)
 		{
@@ -60,7 +62,8 @@ namespace NSProgram
 				Clear();
 			else
 			{
-				SortMem();
+				Shuffle();
+				SortAge();
 				RemoveRange(Count - count, count);
 				SortHash();
 			}
@@ -118,6 +121,18 @@ namespace NSProgram
 			return false;
 		}
 
+		public void Shuffle()
+		{
+			int n = Count;
+			while (n > 1)
+			{
+				int k = rnd.Next(n--);
+				CRec value = this[k];
+				this[k] = this[n];
+				this[n] = value;
+			}
+		}
+
 		public void SortHash()
 		{
 			Sort(delegate (CRec r1, CRec r2)
@@ -130,7 +145,7 @@ namespace NSProgram
 			});
 		}
 
-		public void SortMem()
+		public void SortAge()
 		{
 			Sort(delegate (CRec r1, CRec r2)
 			{

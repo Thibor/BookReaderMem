@@ -557,11 +557,10 @@ namespace NSProgram
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			int del0 = -1;
+			int delete = 0;
 			if (arrAct[0] && arrAct[0xff])
-				del0 = CChess.random.Next(arrAge[0] + 1);
+				delete = Delete(AgeDel() >> 3);
 			arrAct[0] = false;
-			int deleted = 0;
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -581,15 +580,7 @@ namespace NSProgram
 								if (rec.age > 0)
 									rec.age--;
 								else
-								{
-									deleted++;
 									continue;
-								}
-							}
-							if ((rec.age == 0) && (--del0 == 0))
-							{
-								deleted++;
-								continue;
 							}
 							WriteUInt64(writer, rec.hash);
 							writer.Write(rec.mat);
@@ -624,8 +615,8 @@ namespace NSProgram
 			if (arrAct[255])
 			{
 				if (Program.isLog)
-					log.Add($"book {recList.Count:N0} delete {deleted:N0}");
-				Console.WriteLine($"log book {recList.Count:N0} delete {deleted:N0}");
+					log.Add($"book {recList.Count:N0} delete {delete:N0}");
+				Console.WriteLine($"log book {recList.Count:N0} delete {delete:N0}");
 			}
 			return true;
 		}
