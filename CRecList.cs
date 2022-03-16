@@ -80,8 +80,11 @@ namespace NSProgram
 				CRec r = this[index];
 				if (r.hash == rec.hash)
 				{
-					r.mat = rec.mat;
-					return true;
+					if (r.mat != rec.mat)
+					{
+						r.mat = rec.mat;
+						return true;
+					}
 				}
 			}
 			return false;

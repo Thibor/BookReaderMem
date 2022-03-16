@@ -424,8 +424,19 @@ namespace NSProgram
 			return false;
 		}
 
-		void AddUciBack(string[] moves)
+		public bool AddUciBack(string moves)
 		{
+			return AddUciBack(moves.Trim().Split(' '));
+		}
+
+		public bool AddUciBack(List<string> moves)
+		{
+			return AddUciBack(moves.ToArray());
+		}
+
+		public bool AddUciBack(string[] moves)
+		{
+			bool result = false;
 			List<int> le = new List<int>();
 			chess.SetFen();
 			foreach (string m in moves)
@@ -448,9 +459,11 @@ namespace NSProgram
 					if (mat >= 0)//0 must become -1
 						mat--;
 					rec.mat = (sbyte)mat;
-					recList.RecUpdate(rec);
+					if (recList.RecUpdate(rec))
+						result = true;
 				}
 			}
+			return result;
 		}
 
 		public int AddUci(string[] moves, int limit = 0)

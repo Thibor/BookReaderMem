@@ -43,6 +43,7 @@ namespace NSProgram
 			int bookRandom = 60;
 			int lastLength = 0;
 			string analyzeMoves = String.Empty;
+			bool checkBack = false;
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
@@ -302,6 +303,7 @@ namespace NSProgram
 							book.chess.MakeMoves(lastMoves);
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
+								checkBack = isW;
 								analyze = teacherProcess != null;
 								quit = false;
 								TeacherWriteLine("stop");
@@ -336,6 +338,13 @@ namespace NSProgram
 								Console.WriteLine($"bestmove {move}");
 							else
 							{
+								if (checkBack)
+								{
+									checkBack = false;
+									if (bookLoaded)
+										if (book.AddUciBack(lastMoves))
+											book.SaveToFile();
+								}
 								if (analyze && (book.chess.GenerateValidMoves(out _).Count > 1))
 								{
 									analyzeMoves = lastMoves;
