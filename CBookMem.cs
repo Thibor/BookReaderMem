@@ -793,8 +793,6 @@ namespace NSProgram
 			int ageAvg = AgeAvg();
 			int ageMax = AgeMax();
 			int ageMin = AgeMin();
-			int max = ageMax;
-			int min = ageMin;
 			Console.WriteLine($"moves {recList.Count:N0} min {ageMin:N0} avg {ageAvg:N0} max {ageMax:N0}");
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
@@ -802,7 +800,7 @@ namespace NSProgram
 			ShowLevel(255, l);
 			for (int n = 254; n >= 0; n--)
 			{
-				if ((arrAge[n] > max) || (arrAge[n] < min))
+				if ((arrAge[n] > ageMax) || (arrAge[n] < ageMin))
 					ShowLevel(n, l);
 				if (arrAge[n] == 0)
 					break;
