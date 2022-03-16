@@ -241,7 +241,7 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeAvg() / randMax;
+			return AgeAvg() / (randMax + 1);
 		}
 
 		int AgeMax()
@@ -566,7 +566,7 @@ namespace NSProgram
 				arrAct[n] = arrAge[n] > ageMax;
 			int delete = 0;
 			if (arrAct[0] && arrAct[0xff])
-				delete = Delete(AgeDel() >> 3);
+				delete = Delete(AgeDel() >> 4);
 			arrAct[0] = false;
 			try
 			{
