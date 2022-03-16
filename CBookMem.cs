@@ -251,6 +251,13 @@ namespace NSProgram
 			return ageAvg + (ageDel >> 1) + 1;
 		}
 
+		int AgeMin()
+		{
+			int ageAvg = AgeAvg();
+			int ageDel = AgeDel();
+			return ageAvg - (ageDel >> 1) - 1;
+		}
+
 		public void Clear()
 		{
 			recList.Clear();
@@ -785,10 +792,10 @@ namespace NSProgram
 			int l = recList.Count.ToString().Length;
 			int ageAvg = AgeAvg();
 			int ageMax = AgeMax();
-			int ageDel = AgeDel();
-			int max = ageAvg + ageDel;
-			int min = ageAvg - ageDel;
-			Console.WriteLine($"moves {recList.Count:N0} avg {ageAvg:N0} max {ageMax:N0}");
+			int ageMin = AgeMin();
+			int max = ageMax;
+			int min = ageMin;
+			Console.WriteLine($"moves {recList.Count:N0} min {ageMin:N0} avg {ageAvg:N0} max {ageMax:N0}");
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
 			RefreshAge();
