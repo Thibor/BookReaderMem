@@ -17,7 +17,7 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 ## Console commands
 
 **book load** [filename].[mem|pgn|uci|fen] - clear and add<br/>
-**book save** [filename].[mem] - save book to the file<br/>
+**book save** [filename].[mem|uci] - save book to the file<br/>
 **book delete** [number x] - delete x rare used moves from the book<br/>
 **book addfile** [filename].[mem|pgn|uci|fen] - adds moves from another book<br/>
 **book adduci** [uci] - adds a sequence of moves in uci format<br/>
