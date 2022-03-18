@@ -13,6 +13,7 @@ namespace NSProgram
 		/// Book can write log file.
 		/// </summary>
 		public static bool isLog = false;
+		public static CBookMem book = new CBookMem();
 
 		static void Main(string[] args)
 		{
@@ -47,7 +48,6 @@ namespace NSProgram
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
-			CBookMem book = new CBookMem();
 			CRapLog logUci = new CRapLog("teacher.uci",0,false);
 			object locker = new object();
 			string ax = "-bn";

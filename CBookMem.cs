@@ -220,6 +220,7 @@ namespace NSProgram
 		public CChessExt chess = new CChessExt();
 		readonly int[] arrAge = new int[0x100];
 		public CRecList recList = new CRecList();
+		public CBranchList branchList = new CBranchList();
 		public CRapLog log = new CRapLog();
 
 		public void ShowMoves(bool last = false)
@@ -300,7 +301,7 @@ namespace NSProgram
 				return true;
 			if (String.IsNullOrEmpty(fileShortName))
 				fileShortName = Path.GetFileNameWithoutExtension(p);
-			string ext = Path.GetExtension(p);
+			string ext = Path.GetExtension(p).ToLower();
 			if (ext == defExt)
 				return AddFileMem(p);
 			else if (ext == ".pgn")
@@ -521,7 +522,10 @@ namespace NSProgram
 					hash = GetHash(),
 					mat = MateToMat(mate)
 				};
-				ca += recList.AddRec(rec);
+				if (recList.AddRec(rec))
+					ca++;
+				else
+					ca = 0;
 				if ((bookAdd > 0) && (ca >= bookAdd))
 					break;
 			}
@@ -567,6 +571,37 @@ namespace NSProgram
 		}
 
 		public bool SaveToFile(string p)
+		{
+			string ext = Path.GetExtension(p).ToLower();
+			if (ext == defExt)
+				return SaveToMem(p);
+			if (ext == ".uci")
+				return SaveToUci(p);
+			return false;
+		}
+
+		public bool SaveToUci(string p)
+		{
+			chess.SetFen();
+			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
+			using (StreamWriter sw = new StreamWriter(fs))
+			{
+				do
+				{
+					branchList.Fill();
+					string uci = branchList.GetUci();
+					if (!String.IsNullOrEmpty(uci))
+					{
+						sw.WriteLine(uci);
+						Console.Write($"\r{branchList.GetIndex()}");
+					}
+				} while (branchList.Next());
+			}
+			Console.WriteLine("");
+			return true;
+		}
+
+		public bool SaveToMem(string p)
 		{
 			string pt = p + ".tmp";
 			if ((maxRecords > 0) && (recList.Count > maxRecords))

@@ -14,7 +14,7 @@ namespace NSProgram
 	{
 		readonly static Random rnd = new Random();
 
-		public int AddRec(CRec rec)
+		public bool AddRec(CRec rec)
 		{
 			int index = FindHash(rec.hash);
 			if (index == Count)
@@ -26,12 +26,12 @@ namespace NSProgram
 				{
 					r.mat = rec.mat;
 					r.age = 0xff;
-					return 0;
+					return false;
 				}
 				else
 					Insert(index, rec);
 			}
-			return 1;
+			return true;
 		}
 
 		public int AddHash(CRec rec)

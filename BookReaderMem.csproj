@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CBranchList.cs" />
     <Compile Include="CChess.cs" />
     <Compile Include="CBookMem.cs" />
     <Compile Include="CChessExt.cs" />
