@@ -25,6 +25,10 @@ namespace NSProgram
 			/// <summary>
 			/// Book can write new moves.
 			/// </summary>
+			bool isU = false;
+			/// <summary>
+			/// Book can update moves.
+			/// </summary>
 			bool isW = false;
 			/// <summary>
 			/// Moves add to book.
@@ -48,7 +52,7 @@ namespace NSProgram
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
-			CRapLog logUci = new CRapLog("teacher.uci",0,false);
+			CRapLog logUci = new CRapLog("teacher.uci", 0, false);
 			object locker = new object();
 			string ax = "-bn";
 			List<string> listBn = new List<string>();
@@ -74,8 +78,13 @@ namespace NSProgram
 						ax = ac;
 						isLog = true;
 						break;
+					case "-u"://update
+						ax = ac;
+						isU = true;
+						break;
 					case "-w"://writable
 						ax = ac;
+						isU = true;
 						isW = true;
 						break;
 					default:
@@ -122,7 +131,14 @@ namespace NSProgram
 				bookName = $"{bookName}{CBookMem.defExt}";
 			bool bookLoaded = book.LoadFromFile(bookName);
 			if (bookLoaded && (book.recList.Count > 0))
+			{
 				Console.WriteLine($"info string book on");
+				if (isW)
+					Console.WriteLine($"info string write on");
+				if (isU)
+					Console.WriteLine($"info string update on");
+			}
+
 
 			Process engineProcess = null;
 			if (File.Exists(engineFile))
@@ -303,7 +319,7 @@ namespace NSProgram
 							book.chess.MakeMoves(lastMoves);
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
-								checkBack = isW;
+								checkBack = isU;
 								analyze = teacherProcess != null;
 								quit = false;
 								TeacherWriteLine("stop");

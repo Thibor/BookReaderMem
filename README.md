@@ -9,7 +9,8 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **-ef** chess Engine File<br/>
 **-tf** chess Teacher File<br/>
 **-ea** chess Engine Arguments<br/>
-**-w** add new moves to the book<br/>
+**-w** add moves to the book<br/>
+**-u** update moves in the book<br/>
 **-lr** Limit maximum ply depth when Read from book (default 32) 0 means no limit<br/>
 **-lw** Limit maximum ply depth when Write to book (default 32) 0 means no limit<br/>
 **-rnd** RaNDomization (default 50) 0 - means choose best move 100 - mean choose random move 200 - mean choose worst move<br/>
@@ -18,7 +19,7 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 
 **book load** [filename].[mem|pgn|uci|fen] - clear and add<br/>
 **book save** [filename].[mem|uci] - save book to the file<br/>
-**book delete** [number x] - delete x rare used moves from the book<br/>
+**book delete** [number x] - delete x moves from the book<br/>
 **book addfile** [filename].[mem|pgn|uci|fen] - adds moves from another book<br/>
 **book adduci** [uci] - adds a sequence of moves in uci format<br/>
 **book addfen** [fen] - add position in fen format<br/>
