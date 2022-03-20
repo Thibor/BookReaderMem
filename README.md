@@ -19,11 +19,11 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 
 **book load** [filename].[mem|pgn|uci|fen] - clear and add<br/>
 **book save** [filename].[mem|uci] - save book to the file<br/>
-**book delete** [number x] - delete x moves from the book<br/>
 **book addfile** [filename].[mem|pgn|uci|fen] - adds moves from another book<br/>
+**book delete** [number x] - delete x moves from the book<br/>
+**book clear** - clear all moves from the book<br/>
 **book adduci** [uci] - adds a sequence of moves in uci format<br/>
 **book addfen** [fen] - add position in fen format<br/>
-**book clear** - clear all moves from the book<br/>
 **book moves** [uci] - make sequence of moves in uci format and shows possible continuations<br/>
 **book structure** - show structure of current book<br/>
 **quit** quit the program as soon as possible

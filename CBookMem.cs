@@ -768,7 +768,7 @@ namespace NSProgram
 			if (el.Count == 0)
 				return el;
 			CEmoList emoList = new CEmoList();
-			List<int> moves = chess.GenerateValidMoves(out _, true);
+			List<int> moves = chess.GenerateValidMoves(out _);
 			foreach (int m in moves)
 			{
 				if (el.GetEmo(m) == null)
@@ -788,7 +788,7 @@ namespace NSProgram
 		public CEmoList GetEmoList()
 		{
 			CEmoList emoList = new CEmoList();
-			List<int> moves = chess.GenerateValidMoves(out _, true);
+			List<int> moves = chess.GenerateValidMoves(out _,0);
 			foreach (int m in moves)
 			{
 				chess.MakeMove(m);
