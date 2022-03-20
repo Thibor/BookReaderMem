@@ -425,19 +425,19 @@ namespace NSProgram
 			return false;
 		}
 
-		public bool AddUciBack(string moves)
+		public int Update(string moves)
 		{
-			return AddUciBack(moves.Trim().Split(' '));
+			return Update(moves.Trim().Split(' '));
 		}
 
-		public bool AddUciBack(List<string> moves)
+		public int Update(List<string> moves)
 		{
-			return AddUciBack(moves.ToArray());
+			return Update(moves.ToArray());
 		}
 
-		public bool AddUciBack(string[] moves)
+		public int Update(string[] moves)
 		{
-			bool result = false;
+			int result = 0;
 			List<int> le = new List<int>();
 			chess.SetFen();
 			foreach (string m in moves)
@@ -461,7 +461,7 @@ namespace NSProgram
 						mat--;
 					rec.mat = (sbyte)mat;
 					if (recList.RecUpdate(rec))
-						result = true;
+						result++;
 				}
 			}
 			return result;
@@ -529,7 +529,7 @@ namespace NSProgram
 				if ((bookAdd > 0) && (ca >= bookAdd))
 					break;
 			}
-			AddUciBack(moves);
+			Update(moves);
 			return ca;
 		}
 
@@ -828,6 +828,21 @@ namespace NSProgram
 			Console.WriteLine($"info score mate {mate} possible {emoList.Count} age {bst.age}");
 			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} possible {emoList.Count} age {bst.age}");
 			return umo;
+		}
+
+		public List<string> GetRandomBranch()
+		{
+			List<string> result = new List<string>();
+			chess.SetFen();
+			CEmoList el = GetEmoList();
+			while (el.Count > 0)
+			{
+				CEmo e = el.GetRnd(100);
+				result.Add(chess.EmoToUmo(e.emo));
+				chess.MakeMove(e.emo);
+				el = GetEmoList();
+			}
+			return result;
 		}
 
 		public void ShowLevel(int lev, int len)
