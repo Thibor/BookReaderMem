@@ -6,9 +6,20 @@ namespace NSProgram
 {
 	class CEmo
 	{
-		public int emo;
-		public sbyte mat;
-		public byte age;
+		public int emo = 0;
+		public CRec rec = null;
+
+		public CEmo(int e)
+		{
+			emo = e;
+		}
+
+		public CEmo(int e,CRec r)
+		{
+			emo = e;
+			rec = r;
+		}
+
 	}
 
 	class CEmoList : List<CEmo>
@@ -37,7 +48,7 @@ namespace NSProgram
 			double h = rnd / 100.0;
 			foreach(CEmo e in this)
 			{
-				double m = r ? 127.0 - e.mat : e.mat + 128.0;
+				double m = r ? 127.0 - e.rec.mat : e.rec.mat + 128.0;
 				double cd = m * (1.0 - CChess.random.NextDouble() * h);
 				if (bd < cd)
 				{
@@ -46,6 +57,12 @@ namespace NSProgram
 				}
 			}
 			return bst;
+		}
+
+		public void SetUsed()
+		{
+			foreach(CEmo e in this)
+				e.rec.used = true;
 		}
 
 		public void Shuffle()
@@ -65,10 +82,10 @@ namespace NSProgram
 			Shuffle();
 			Sort(delegate (CEmo e1, CEmo e2)
 			{
-				int r = e2.mat - e1.mat;
+				int r = e2.rec.mat - e1.rec.mat;
 				if (r != 0)
 					return r;
-				return e1.age - e2.age;
+				return e1.rec.age - e2.rec.age;
 			});
 		}
 	}

@@ -96,6 +96,12 @@ namespace NSProgram
 			return index.Trim();
 		}
 
+		public void SetUsed()
+		{
+			foreach (CBranch b in this)
+				b.emoList.SetUsed();
+		}
+
 	}
 
 }

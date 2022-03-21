@@ -5,9 +5,12 @@ namespace NSProgram
 {
 	class CRec
 	{
+		public bool used = false;
 		public ulong hash = 0;
 		public sbyte mat = 0;
 		public byte age = 0xff;
+		public int mate = 0;
+		public string tnt = String.Empty;
 	}
 
 	class CRecList : List<CRec>
@@ -124,6 +127,12 @@ namespace NSProgram
 			if (index < Count)
 				return this[index].hash == hash;
 			return false;
+		}
+
+		public void SetUsed(bool u = false)
+		{
+			foreach (CRec rec in this)
+				rec.used = u;
 		}
 
 		public void Shuffle()

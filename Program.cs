@@ -13,7 +13,9 @@ namespace NSProgram
 		/// Book can write log file.
 		/// </summary>
 		public static bool isLog = false;
-		public static CBookMem book = new CBookMem();
+		public static int updated = 0;
+		public static int added = 0;
+		public static CBook book = new CBook();
 
 		static void Main(string[] args)
 		{
@@ -50,7 +52,6 @@ namespace NSProgram
 			string analyzeMoves = String.Empty;
 			bool makeUpdate = false;
 			bool startUpdate = false;
-			int updated = 0;
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
@@ -130,7 +131,7 @@ namespace NSProgram
 			string arguments = String.Join(" ", listEa);
 			string ext = Path.GetExtension(bookName);
 			if (String.IsNullOrEmpty(ext))
-				bookName = $"{bookName}{CBookMem.defExt}";
+				bookName = $"{bookName}{CBook.defExt}";
 			bool bookLoaded = book.LoadFromFile(bookName);
 			if (bookLoaded && (book.recList.Count > 0))
 			{
@@ -195,7 +196,7 @@ namespace NSProgram
 								if (!quit)
 								{
 									analyzeMoves = $"{analyzeMoves} {tokens[1]}";
-									book.AddUciMate(analyzeMoves, lastLength);
+									added += book.AddUciMate(analyzeMoves, lastLength);
 									if (bookLoaded)
 										book.SaveToFile();
 									Console.WriteLine($"info string analyze finish {analyzeMoves}");
@@ -235,7 +236,7 @@ namespace NSProgram
 				bookLimitR = 0;
 				bookLimitW = 0;
 			}
-			Console.WriteLine($"info string book {CBookMem.name} ver {CBookMem.version} moves {book.recList.Count:N0}");
+			Console.WriteLine($"info string book {CBook.name} ver {CBook.version} moves {book.recList.Count:N0}");
 			book.bookAdd = bookAdd;
 			do
 			{
@@ -323,6 +324,7 @@ namespace NSProgram
 							{
 								makeUpdate = isU;
 								startUpdate = false;
+								added = 0;
 								updated = 0;
 								analyze = teacherProcess != null;
 								quit = false;
@@ -341,7 +343,7 @@ namespace NSProgram
 								bookLoaded = book.LoadFromFile();
 								if (bookLoaded && (isW || analyze))
 								{
-									book.AddUciMate(movesUci, lastLength);
+									added += book.AddUciMate(movesUci, lastLength);
 									book.SaveToFile();
 								}
 								if (teacherProcess != null)
@@ -376,7 +378,7 @@ namespace NSProgram
 									{
 										startUpdate = false;
 										book.SaveToFile();
-										if (isLog)
+										if (isLog && (updated > 0))
 											book.log.Add($"Updated {updated}");
 									}
 									else

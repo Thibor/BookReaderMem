@@ -14,11 +14,12 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 **-lr** Limit maximum ply depth when Read from book (default 32) 0 means no limit<br/>
 **-lw** Limit maximum ply depth when Write to book (default 32) 0 means no limit<br/>
 **-rnd** RaNDomization (default 50) 0 - means choose best move 100 - mean choose random move 200 - mean choose worst move<br/>
+**-log** Create LOG file<br/>
 
 ## Console commands
 
-**book load** [filename].[mem|pgn|uci|fen] - clear and add<br/>
-**book save** [filename].[mem|uci] - save book to the file<br/>
+**book load** [filename].[mem|uci|tnt|png|fen] - clear and add<br/>
+**book save** [filename].[mem|uci|tnt] - save book to the file<br/>
 **book addfile** [filename].[mem|pgn|uci|fen] - adds moves from another book<br/>
 **book delete** [number x] - delete x moves from the book<br/>
 **book clear** - clear all moves from the book<br/>

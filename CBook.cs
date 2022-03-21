@@ -9,7 +9,7 @@ using RapLog;
 namespace NSProgram
 {
 
-	class CBookMem
+	class CBook
 	{
 		readonly ulong[] Random64 = {
    0x9D39247E33776D41, 0x2AF7398005AAA5C7, 0x44DB015024623547, 0x9C15F73E62A76AE2,
@@ -242,7 +242,7 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeAvg() / (randMax + 1);
+			return AgeAvg() / randMax + 1;
 		}
 
 		int AgeMax()
@@ -304,10 +304,12 @@ namespace NSProgram
 			string ext = Path.GetExtension(p).ToLower();
 			if (ext == defExt)
 				return AddFileMem(p);
-			else if (ext == ".pgn")
-				AddFilePgn(p);
 			else if (ext == ".uci")
 				AddFileUci(p);
+			else if (ext == ".tnt")
+				AddFileTnt(p);
+			else if (ext == ".pgn")
+				AddFilePgn(p);
 			else if (ext == ".fen")
 				AddFileFen(p);
 			return true;
@@ -364,6 +366,13 @@ namespace NSProgram
 				AddUci(uci);
 		}
 
+		void AddFileTnt(string p)
+		{
+			string[] lines = File.ReadAllLines(p);
+			foreach (string tnt in lines)
+				AddRecTnt(tnt);
+		}
+
 		void AddFileFen(string p)
 		{
 			string[] lines = File.ReadAllLines(p);
@@ -411,6 +420,30 @@ namespace NSProgram
 			ShowMoves();
 		}
 
+		public void AddRecTnt(string tnt)
+		{
+			int i = tnt.IndexOf('+');
+			if(i >= 0)
+			{
+
+			}
+			else
+			{
+				i = tnt.IndexOf('-');
+			}
+			string t = tnt.Remove(i);
+			string m = tnt.Remove(0,i);
+			int mate = int.Parse(m);
+			chess.SetTnt(t);
+			CRec rec = new CRec
+			{
+				hash = GetHash(),
+				mate = mate,
+				mat = MateToMat(mate)
+			};
+			recList.AddRec(rec);
+		}
+
 		public bool AddFen(string fen)
 		{
 			if (chess.SetFen(fen))
@@ -456,7 +489,7 @@ namespace NSProgram
 					{
 						hash = GetHash()
 					};
-					int mat = -emoList[0].mat;
+					int mat = -emoList[0].rec.mat;
 					if (mat >= 0)//0 must become -1
 						mat--;
 					rec.mat = (sbyte)mat;
@@ -575,6 +608,8 @@ namespace NSProgram
 			string ext = Path.GetExtension(p).ToLower();
 			if (ext == defExt)
 				return SaveToMem(p);
+			if (ext == ".tnt")
+				return SaveToTnt(p);
 			if (ext == ".uci")
 				return SaveToUci(p);
 			return false;
@@ -582,22 +617,25 @@ namespace NSProgram
 
 		public bool SaveToUci(string p)
 		{
+			int line = 0;
 			chess.SetFen();
+			recList.SetUsed();
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
 			{
 				do
 				{
 					branchList.Fill();
+					branchList.SetUsed();
 					string uci = branchList.GetUci();
 					if (!String.IsNullOrEmpty(uci))
 					{
+						Console.Write($"\rRecord {++line}");
 						sw.WriteLine(uci);
-						Console.Write($"\r{branchList.GetIndex()}");
 					}
 				} while (branchList.Next());
 			}
-			Console.WriteLine("");
+			Console.WriteLine();
 			return true;
 		}
 
@@ -667,12 +705,46 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (arrAct[255])
+			if (arrAct[0])
 			{
+				int structure = 0;
+				if (arrAge[255] < AgeMin())
+					structure = AgeMin() - arrAge[255];
+				if (arrAge[255] > AgeMax())
+					structure = arrAge[255] - AgeMax();
 				if (Program.isLog)
-					log.Add($"book {recList.Count:N0} delete {delete:N0}");
-				Console.WriteLine($"log book {recList.Count:N0} delete {delete:N0}");
+					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {delete:N0} structure {structure}");
+				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {delete:N0} structure {structure}");
 			}
+			return true;
+		}
+
+		public bool SaveToTnt(string p)
+		{
+			int line = 0;
+			chess.SetFen();
+			recList.SetUsed();
+			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
+			using (StreamWriter sw = new StreamWriter(fs))
+			{
+				do
+				{
+					branchList.Fill();
+					for (int n = branchList.Count - 1; n >= 0; n--)
+					{
+						CBranch branch = branchList[n];
+						CEmo emo = branch.GetEmo();
+						CRec rec = emo.rec;
+						if (rec.used)
+							break;
+						rec.used = true;
+						string l = $"{rec.tnt}{rec.mate.ToString("+#;-#;+0")}";
+						Console.Write($"\rRecord {++line}");
+						sw.WriteLine(l);
+					}
+				} while (branchList.Next());
+			}
+			Console.WriteLine();
 			return true;
 		}
 
@@ -773,10 +845,7 @@ namespace NSProgram
 			{
 				if (el.GetEmo(m) == null)
 				{
-					CEmo emo = new CEmo
-					{
-						emo = m
-					};
+					CEmo emo = new CEmo(m);
 					emoList.Add(emo);
 				}
 			}
@@ -788,22 +857,20 @@ namespace NSProgram
 		public CEmoList GetEmoList()
 		{
 			CEmoList emoList = new CEmoList();
-			List<int> moves = chess.GenerateValidMoves(out _,0);
+			List<int> moves = chess.GenerateValidMoves(out _, 0);
 			foreach (int m in moves)
 			{
 				chess.MakeMove(m);
 				ulong hash = GetHash();
 				CRec rec = recList.GetRec(hash);
 				if (rec != null)
-				{
-					CEmo emo = new CEmo
+					if (!rec.used)
 					{
-						emo = m,
-						mat = rec.mat,
-						age = rec.age
-					};
-					emoList.Add(emo);
-				}
+						rec.mate = MatToMate(rec.mat);
+						rec.tnt = chess.GetTnt();
+						CEmo emo = new CEmo(m,rec);
+						emoList.Add(emo);
+					}
 				chess.UnmakeMove(m);
 			}
 			emoList.SortMat();
@@ -824,9 +891,9 @@ namespace NSProgram
 				return String.Empty;
 			CEmo bst = emoList.GetRnd(rnd);
 			string umo = chess.EmoToUmo(bst.emo);
-			int mate = MatToMate(bst.mat);
-			Console.WriteLine($"info score mate {mate} possible {emoList.Count} age {bst.age}");
-			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} possible {emoList.Count} age {bst.age}");
+			int mate = bst.rec.mate;
+			Console.WriteLine($"info score mate {mate} possible {emoList.Count} age {bst.rec.age}");
+			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} possible {emoList.Count} age {bst.rec.age}");
 			return umo;
 		}
 
@@ -888,7 +955,7 @@ namespace NSProgram
 					foreach (CEmo e in el)
 					{
 						string umo = chess.EmoToUmo(e.emo);
-						Console.WriteLine(String.Format("{0,2} {1,-4} {2,5} {3,3}", i++, umo, e.mat, e.age));
+						Console.WriteLine(String.Format("{0,2} {1,-4} {2,5} {3,3}", i++, umo, e.rec.mat, e.rec.age));
 					}
 				}
 			}
