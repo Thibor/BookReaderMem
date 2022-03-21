@@ -13,8 +13,8 @@ namespace NSProgram
 		/// Book can write log file.
 		/// </summary>
 		public static bool isLog = false;
-		public static int updated = 0;
 		public static int added = 0;
+		public static int updated = 0;
 		public static CBook book = new CBook();
 
 		static void Main(string[] args)
@@ -330,7 +330,7 @@ namespace NSProgram
 								quit = false;
 								TeacherWriteLine("stop");
 							}
-							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || (teacherProcess != null)))
+							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || isU || analyze))
 							{
 								startUpdate = false;
 								string[] am = lastMoves.Split(' ');
@@ -341,9 +341,10 @@ namespace NSProgram
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
 								bookLoaded = book.LoadFromFile();
-								if (bookLoaded && (isW || analyze))
+								if (bookLoaded && (isW || isU || analyze))
 								{
-									added += book.AddUciMate(movesUci, lastLength);
+									if(isW || analyze)
+										added += book.AddUciMate(movesUci, lastLength);
 									book.SaveToFile();
 								}
 								if (teacherProcess != null)
@@ -373,16 +374,7 @@ namespace NSProgram
 								else if (startUpdate)
 								{
 									List<string> branch = book.GetRandomBranch();
-									int u = book.Update(branch);
-									if (u == 0)
-									{
-										startUpdate = false;
-										book.SaveToFile();
-										if (isLog && (updated > 0))
-											book.log.Add($"Updated {updated}");
-									}
-									else
-										updated += u;
+									updated += book.Update(branch);
 								}
 								if (analyze && (book.chess.GenerateValidMoves(out _).Count > 1))
 								{

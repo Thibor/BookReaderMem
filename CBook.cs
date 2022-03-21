@@ -437,8 +437,9 @@ namespace NSProgram
 			chess.SetTnt(t);
 			CRec rec = new CRec
 			{
-				hash = GetHash(),
+				tnt = t,
 				mate = mate,
+				hash = GetHash(),
 				mat = MateToMat(mate)
 			};
 			recList.AddRec(rec);
