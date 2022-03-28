@@ -51,7 +51,7 @@ namespace NSProgram
 			int lastLength = 0;
 			string analyzeMoves = String.Empty;
 			bool makeUpdate = false;
-			bool startUpdate = false;
+			bool continueUpdate = false;
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
@@ -323,16 +323,21 @@ namespace NSProgram
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
 								makeUpdate = isU;
-								startUpdate = false;
+								continueUpdate = false;
 								added = 0;
 								updated = 0;
 								analyze = teacherProcess != null;
 								quit = false;
 								TeacherWriteLine("stop");
 							}
-							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || isU || analyze))
+							if (bookLoaded && (isW || isU) && (updated > 0) && book.chess.Is1ToEnd())
 							{
-								startUpdate = false;
+								continueUpdate = false;
+								book.SaveToFile();
+							}
+							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || isU))
+							{
+								continueUpdate = false;
 								string[] am = lastMoves.Split(' ');
 								List<string> movesUci = new List<string>();
 								foreach (string m in am)
@@ -340,9 +345,9 @@ namespace NSProgram
 								movesUci.Add(myMove);
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
-								if (bookLoaded && (isW || isU || analyze))
+								if (bookLoaded && (isW || isU))
 								{
-									if(isW || analyze)
+									if (isW)
 										added += book.AddUciMate(movesUci, lastLength);
 									book.SaveToFile();
 								}
@@ -366,22 +371,22 @@ namespace NSProgram
 									makeUpdate = false;
 									if (bookLoaded)
 									{
-										startUpdate = true;
+										continueUpdate = true;
 										updated += book.Update(lastMoves);
 									}
 								}
-								else if (startUpdate)
+								else if (continueUpdate)
 								{
 									List<string> branch = book.GetRandomBranch();
 									updated += book.Update(branch);
 								}
 								if (analyze && (book.chess.GenerateValidMoves(out _).Count > 1))
 								{
+									analyze = false;
 									analyzeMoves = lastMoves;
 									TeacherWriteLine("stop");
 									TeacherWriteLine($"position startpos moves {analyzeMoves}");
 									TeacherWriteLine("go infinite");
-									analyze = false;
 									Console.WriteLine($"info string analyze start {analyzeMoves}");
 								}
 								if (engineProcess == null)

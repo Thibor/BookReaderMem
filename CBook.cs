@@ -242,21 +242,19 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeAvg() / randMax + 1;
+			return AgeMax() - AgeMin();
 		}
 
 		int AgeMax()
 		{
 			int ageAvg = AgeAvg();
-			int ageDel = AgeDel();
-			return ageAvg + (ageDel >> 1) + 1;
+			return Convert.ToInt32((ageAvg << 1) / (2.0 - 1.0 / (randMax +1)));
 		}
 
 		int AgeMin()
 		{
-			int ageAvg = AgeAvg();
-			int ageDel = AgeDel();
-			return ageAvg - (ageDel >> 1) - 1;
+			int ageMax = AgeMax();
+			return Convert.ToInt32(ageMax * (1.0 - 1.0 / (randMax + 1)));
 		}
 
 		public void Clear()
@@ -423,7 +421,7 @@ namespace NSProgram
 		public void AddRecTnt(string tnt)
 		{
 			int i = tnt.IndexOf('+');
-			if(i >= 0)
+			if (i >= 0)
 			{
 
 			}
@@ -432,7 +430,7 @@ namespace NSProgram
 				i = tnt.IndexOf('-');
 			}
 			string t = tnt.Remove(i);
-			string m = tnt.Remove(0,i);
+			string m = tnt.Remove(0, i);
 			int mate = int.Parse(m);
 			chess.SetTnt(t);
 			CRec rec = new CRec
@@ -652,8 +650,8 @@ namespace NSProgram
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
 			int delete = 0;
-			if (arrAct[0] && arrAct[0xff])
-				delete = Delete(AgeDel() >> 4);
+			if (arrAct[0] && arrAct[1])
+				delete = Delete(AgeDel() >> 8);
 			arrAct[0] = false;
 			try
 			{
@@ -869,7 +867,7 @@ namespace NSProgram
 					{
 						rec.mate = MatToMate(rec.mat);
 						rec.tnt = chess.GetTnt();
-						CEmo emo = new CEmo(m,rec);
+						CEmo emo = new CEmo(m, rec);
 						emoList.Add(emo);
 					}
 				chess.UnmakeMove(m);

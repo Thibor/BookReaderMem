@@ -5,7 +5,32 @@ namespace NSProgram
 {
 	class CChessExt : CChess
 	{
-		public bool Is2ToEnd(out string myMov, out string enMov)
+		public bool Is1ToEnd()
+		{
+			int count = 0;
+			List<int> am = GenerateAllMoves(whiteTurn, false);
+			if (!g_inCheck)
+				foreach (int m in am)
+				{
+					MakeMove(m);
+					GenerateAllMoves(whiteTurn, true);
+					if (!g_inCheck)
+					{
+						count++;
+						if (GetGameState() != CGameState.normal)
+						{
+							UnmakeMove(m);
+							return true;
+						}
+					}
+					UnmakeMove(m);
+				}
+			if (count == 0)
+				return true;
+			return false;
+		}
+
+			public bool Is2ToEnd(out string myMov, out string enMov)
 		{
 			myMov = "";
 			enMov = "";
