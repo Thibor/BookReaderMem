@@ -18,8 +18,8 @@ To use this program you need install  <a href="https://dotnet.microsoft.com/down
 
 ## Console commands
 
-**book load** [filename].[mem|uci|tnt|png|fen] - clear and add<br/>
-**book save** [filename].[mem|uci|tnt] - save book to the file<br/>
+**book load** [filename].[mem|uci|pgn|tnt] - clear and add<br/>
+**book save** [filename].[mem|uci|pgn|tnt] - save book to the file<br/>
 **book addfile** [filename].[mem|pgn|uci|fen] - adds moves from another book<br/>
 **book delete** [number x] - delete x moves from the book<br/>
 **book clear** - clear all moves from the book<br/>

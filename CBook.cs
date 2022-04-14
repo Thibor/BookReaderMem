@@ -304,12 +304,8 @@ namespace NSProgram
 				return AddFileMem(p);
 			else if (ext == ".uci")
 				AddFileUci(p);
-			else if (ext == ".tnt")
-				AddFileTnt(p);
 			else if (ext == ".pgn")
 				AddFilePgn(p);
-			else if (ext == ".fen")
-				AddFileFen(p);
 			return true;
 		}
 
@@ -364,20 +360,6 @@ namespace NSProgram
 				AddUci(uci);
 		}
 
-		void AddFileTnt(string p)
-		{
-			string[] lines = File.ReadAllLines(p);
-			foreach (string tnt in lines)
-				AddRecTnt(tnt);
-		}
-
-		void AddFileFen(string p)
-		{
-			string[] lines = File.ReadAllLines(p);
-			foreach (string fen in lines)
-				AddFen(fen);
-		}
-
 		void AddFilePgn(string p)
 		{
 			List<string> listPgn = File.ReadAllLines(p).ToList();
@@ -416,31 +398,6 @@ namespace NSProgram
 			}
 			AddUci(movesUci);
 			ShowMoves();
-		}
-
-		public void AddRecTnt(string tnt)
-		{
-			int i = tnt.IndexOf('+');
-			if (i >= 0)
-			{
-
-			}
-			else
-			{
-				i = tnt.IndexOf('-');
-			}
-			string t = tnt.Remove(i);
-			string m = tnt.Remove(0, i);
-			int mate = int.Parse(m);
-			chess.SetTnt(t);
-			CRec rec = new CRec
-			{
-				tnt = t,
-				mate = mate,
-				hash = GetHash(),
-				mat = MateToMat(mate)
-			};
-			recList.AddRec(rec);
 		}
 
 		public bool AddFen(string fen)
@@ -607,17 +564,16 @@ namespace NSProgram
 			string ext = Path.GetExtension(p).ToLower();
 			if (ext == defExt)
 				return SaveToMem(p);
-			if (ext == ".tnt")
-				return SaveToTnt(p);
 			if (ext == ".uci")
 				return SaveToUci(p);
+			if (ext == ".pgn")
+				return SaveToPgn(p);
 			return false;
 		}
 
 		public bool SaveToUci(string p)
 		{
 			int line = 0;
-			chess.SetFen();
 			recList.SetUsed();
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
@@ -638,21 +594,64 @@ namespace NSProgram
 			return true;
 		}
 
+		public bool SaveToPgn(string p)
+		{
+			int line = 0;
+			recList.SetUsed();
+			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
+			using (StreamWriter sw = new StreamWriter(fs))
+			{
+				do
+				{
+					branchList.Fill();
+					branchList.SetUsed();
+					string uci = branchList.GetUci();
+					if (!String.IsNullOrEmpty(uci))
+					{
+						string[] arrMoves = uci.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+						chess.SetFen();
+						string png = String.Empty;
+						foreach (string umo in arrMoves)
+						{
+							string san = chess.UmoToSan(umo);
+							if (san == String.Empty)
+								break;
+							int number = (chess.g_moveNumber >> 1) + 1;
+							if (chess.whiteTurn)
+								png += $" {number}. {san}";
+							else
+								png += $" {san}";
+							int emo = chess.UmoToEmo(umo);
+							chess.MakeMove(emo);
+						}
+
+						sw.WriteLine();
+						sw.WriteLine("[White \"White\"]");
+						sw.WriteLine("[Black \"Black\"]");
+						sw.WriteLine();
+						sw.WriteLine(png.Trim());
+						Console.Write($"\rRecord {++line}");
+					}
+				} while (branchList.Next());
+			}
+			Console.WriteLine();
+			return true;
+		}
+
 		public bool SaveToMem(string p)
 		{
 			string pt = p + ".tmp";
-			if ((maxRecords > 0) && (recList.Count > maxRecords))
-				Delete(recList.Count - maxRecords);
 			int rand = CChess.random.Next(randMax + 1);
 			double ageMax = AgeMax();
 			RefreshAge();
 			bool[] arrAct = new bool[0x100];
-			for (int n = 0; n <= 0xff; n++)
-				arrAct[n] = arrAge[n] > ageMax;
-			int delete = 0;
-			if (arrAct[0] && arrAct[1])
-				delete = Delete(AgeDel() >> 8);
 			arrAct[0] = false;
+			for (int n = 1; n <= 0xff; n++)
+				arrAct[n] = arrAge[n] > ageMax;
+			int deleted = arrAct[1] ? 1 : 0;
+			if ((maxRecords > 0) && (recList.Count > maxRecords))
+				deleted += recList.Count - maxRecords;
+			Delete(deleted);
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -704,7 +703,7 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (arrAct[255])
+			if (arrAct[1])
 			{
 				int structure = 0;
 				if (arrAge[0] < AgeMin())
@@ -712,38 +711,9 @@ namespace NSProgram
 				if (arrAge[0] > AgeMax())
 					structure = arrAge[0] - AgeMax();
 				if (Program.isLog)
-					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {delete:N0} structure {structure}");
-				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {delete:N0} structure {structure}");
+					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {deleted:N0} structure {structure}");
+				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {deleted:N0} structure {structure}");
 			}
-			return true;
-		}
-
-		public bool SaveToTnt(string p)
-		{
-			int line = 0;
-			chess.SetFen();
-			recList.SetUsed();
-			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
-			using (StreamWriter sw = new StreamWriter(fs))
-			{
-				do
-				{
-					branchList.Fill();
-					for (int n = branchList.Count - 1; n >= 0; n--)
-					{
-						CBranch branch = branchList[n];
-						CEmo emo = branch.GetEmo();
-						CRec rec = emo.rec;
-						if (rec.used)
-							break;
-						rec.used = true;
-						string l = $"{rec.tnt}{rec.mate.ToString("+#;-#;+0")}";
-						Console.Write($"\rRecord {++line}");
-						sw.WriteLine(l);
-					}
-				} while (branchList.Next());
-			}
-			Console.WriteLine();
 			return true;
 		}
 
@@ -865,8 +835,6 @@ namespace NSProgram
 				if (rec != null)
 					if (!rec.used)
 					{
-						rec.mate = MatToMate(rec.mat);
-						rec.tnt = chess.GetTnt();
 						CEmo emo = new CEmo(m, rec);
 						emoList.Add(emo);
 					}
@@ -890,8 +858,8 @@ namespace NSProgram
 				return String.Empty;
 			CEmo bst = emoList.GetRnd(rnd);
 			string umo = chess.EmoToUmo(bst.emo);
-			int mate = bst.rec.mate;
-			Console.WriteLine($"info score mate {mate} possible {emoList.Count} age {bst.rec.age}");
+			int mate = MatToMate(bst.rec.mat);
+			Console.WriteLine($"info score mate {mate}");
 			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} possible {emoList.Count} age {bst.rec.age}");
 			return umo;
 		}
@@ -922,7 +890,8 @@ namespace NSProgram
 			int ageAvg = AgeAvg();
 			int ageMax = AgeMax();
 			int ageMin = AgeMin();
-			Console.WriteLine($"moves {recList.Count:N0} min {ageMin:N0} avg {ageAvg:N0} max {ageMax:N0}");
+			int ageDel = AgeDel();
+			Console.WriteLine($"moves {recList.Count:N0} min {ageMin:N0} avg {ageAvg:N0} max {ageMax:N0} delta {ageDel:N0}");
 			Console.WriteLine(" age  count");
 			Console.WriteLine();
 			RefreshAge();

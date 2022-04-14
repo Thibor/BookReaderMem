@@ -9,8 +9,6 @@ namespace NSProgram
 		public ulong hash = 0;
 		public sbyte mat = 0;
 		public byte age = 0xff;
-		public int mate = 0;
-		public string tnt = String.Empty;
 	}
 
 	class CRecList : List<CRec>
