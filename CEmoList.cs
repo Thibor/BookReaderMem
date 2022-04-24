@@ -85,7 +85,7 @@ namespace NSProgram
 				int r = e2.rec.mat - e1.rec.mat;
 				if (r != 0)
 					return r;
-				return e1.rec.age - e2.rec.age;
+				return e2.rec.age - e1.rec.age;
 			});
 		}
 	}

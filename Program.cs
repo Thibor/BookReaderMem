@@ -15,6 +15,12 @@ namespace NSProgram
 		public static bool isLog = false;
 		public static int added = 0;
 		public static int updated = 0;
+		public static int deleted = 0;
+		/// <summary>
+		/// Moves added to book per game.
+		/// </summary>
+		public static int bookAdd = 5;
+
 		public static CBook book = new CBook();
 
 		static void Main(string[] args)
@@ -32,10 +38,6 @@ namespace NSProgram
 			/// Book can update moves.
 			/// </summary>
 			bool isW = false;
-			/// <summary>
-			/// Moves add to book.
-			/// </summary>
-			int bookAdd = 3;
 			/// <summary>
 			/// Limit ply to wrtie.
 			/// </summary>
@@ -87,7 +89,6 @@ namespace NSProgram
 						break;
 					case "-w"://writable
 						ax = ac;
-						isU = true;
 						isW = true;
 						break;
 					default:
@@ -110,7 +111,7 @@ namespace NSProgram
 								book.maxRecords = int.TryParse(ac, out int m) ? m : 0;
 								break;
 							case "-add":
-								bookAdd = int.TryParse(ac, out int a) ? a : 0;
+								bookAdd = int.TryParse(ac, out int a) ? a : bookAdd;
 								break;
 							case "-rnd":
 								bookRandom = int.TryParse(ac, out int r) ? r : 0;
@@ -237,7 +238,6 @@ namespace NSProgram
 				bookLimitW = 0;
 			}
 			Console.WriteLine($"info string book {CBook.name} ver {CBook.version} moves {book.recList.Count:N0}");
-			book.bookAdd = bookAdd;
 			do
 			{
 				lock (locker)
@@ -326,16 +326,17 @@ namespace NSProgram
 								continueUpdate = false;
 								added = 0;
 								updated = 0;
+								deleted = 0;
 								analyze = teacherProcess != null;
 								quit = false;
 								TeacherWriteLine("stop");
 							}
-							if (bookLoaded && (isW || isU) && (updated > 0) && book.chess.Is1ToEnd())
+							if (bookLoaded && isU && (updated > 0) && book.chess.Is1ToEnd())
 							{
 								continueUpdate = false;
 								book.SaveToFile();
 							}
-							if (String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove) && (isW || isU))
+							if (bookLoaded && (isW || isU) && String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove))
 							{
 								continueUpdate = false;
 								string[] am = lastMoves.Split(' ');
@@ -345,17 +346,9 @@ namespace NSProgram
 								movesUci.Add(myMove);
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
-								if (bookLoaded && (isW || isU))
-								{
-									if (isW)
-										added += book.AddUciMate(movesUci, lastLength);
-									book.SaveToFile();
-								}
-								if (teacherProcess != null)
-								{
-									TeacherWriteLine("stop");
-									Console.WriteLine($"info string analyze stop {analyzeMoves}");
-								}
+								if (isW)
+									added += book.AddUciMate(movesUci, lastLength);
+								book.SaveToFile();
 							}
 							break;
 						case "go":
@@ -372,13 +365,13 @@ namespace NSProgram
 									if (bookLoaded)
 									{
 										continueUpdate = true;
-										updated += book.Update(lastMoves);
+										updated += book.UpdateBack(lastMoves);
 									}
 								}
 								else if (continueUpdate)
 								{
 									List<string> branch = book.GetRandomBranch();
-									updated += book.Update(branch);
+									updated += book.UpdateBack(branch,false);
 								}
 								if (analyze && (book.chess.GenerateValidMoves(out _).Count > 1))
 								{

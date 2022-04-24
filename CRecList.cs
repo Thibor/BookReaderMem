@@ -8,7 +8,7 @@ namespace NSProgram
 		public bool used = false;
 		public ulong hash = 0;
 		public sbyte mat = 0;
-		public byte age = 0xff;
+		public byte age = 0;
 	}
 
 	class CRecList : List<CRec>
@@ -25,8 +25,8 @@ namespace NSProgram
 				CRec r = this[index];
 				if (r.hash == rec.hash)
 				{
+					r.age = 0;
 					r.mat = rec.mat;
-					r.age = 0xff;
 					return false;
 				}
 				else
@@ -47,7 +47,7 @@ namespace NSProgram
 				{
 					if (r.mat < sbyte.MaxValue)
 						r.mat++;
-					r.age = 0xff;
+					r.age = 0;
 					return 0;
 				}
 				else
@@ -81,6 +81,7 @@ namespace NSProgram
 				CRec r = this[index];
 				if (r.hash == rec.hash)
 				{
+					r.age = rec.age;
 					if (r.mat != rec.mat)
 					{
 						r.mat = rec.mat;
@@ -161,7 +162,7 @@ namespace NSProgram
 		{
 			Sort(delegate (CRec r1, CRec r2)
 			{
-				return r2.age - r1.age;
+				return r1.age - r2.age;
 			});
 		}
 

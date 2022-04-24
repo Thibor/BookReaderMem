@@ -209,7 +209,6 @@ namespace NSProgram
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		const int randMax = 9;
 		string path = String.Empty;
-		public int bookAdd;
 		public int errors = 0;
 		public int maxRecords = 0;
 		public const string name = "BookReaderMem";
@@ -248,7 +247,7 @@ namespace NSProgram
 		int AgeMax()
 		{
 			int ageAvg = AgeAvg();
-			return Convert.ToInt32((ageAvg << 1) / (2.0 - 1.0 / (randMax +1)));
+			return Convert.ToInt32((ageAvg << 1) / (2.0 - 1.0 / (randMax + 1)));
 		}
 
 		int AgeMin()
@@ -414,22 +413,22 @@ namespace NSProgram
 			return false;
 		}
 
-		public int Update(string moves)
+		public int UpdateBack(string moves,bool age = true)
 		{
-			return Update(moves.Trim().Split(' '));
+			return UpdateBack(moves.Trim().Split(' '),age);
 		}
 
-		public int Update(List<string> moves)
+		public int UpdateBack(List<string> moves, bool age = true)
 		{
-			return Update(moves.ToArray());
+			return UpdateBack(moves.ToArray(),age);
 		}
 
-		public int Update(string[] moves)
+		public int UpdateBack(string[] moves,bool age = true)
 		{
 			int result = 0;
 			List<int> le = new List<int>();
 			chess.SetFen();
-			foreach (string m in moves)
+			foreach(string m in moves)
 			{
 				chess.MakeMove(m, out int emo);
 				le.Add(emo);
@@ -449,6 +448,12 @@ namespace NSProgram
 					if (mat >= 0)//0 must become -1
 						mat--;
 					rec.mat = (sbyte)mat;
+					if (!age)
+					{
+						int index = recList.FindHash(rec.hash);
+						if (index < recList.Count)
+							rec.age = recList[index].age;
+					}
 					if (recList.RecUpdate(rec))
 						result++;
 				}
@@ -513,12 +518,9 @@ namespace NSProgram
 				};
 				if (recList.AddRec(rec))
 					ca++;
-				else
-					ca = 0;
-				if ((bookAdd > 0) && (ca >= bookAdd))
+				if ((Program.bookAdd > 0) && (ca >= Program.bookAdd))
 					break;
 			}
-			Update(moves);
 			return ca;
 		}
 
@@ -645,13 +647,13 @@ namespace NSProgram
 			double ageMax = AgeMax();
 			RefreshAge();
 			bool[] arrAct = new bool[0x100];
-			arrAct[0] = false;
-			for (int n = 1; n <= 0xff; n++)
+			arrAct[0xff] = false;
+			for (int n = 0; n < 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			int deleted = arrAct[1] ? 1 : 0;
+			Program.deleted = arrAct[254] ? 1 : 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
-				deleted += recList.Count - maxRecords;
-			Delete(deleted);
+				Program.deleted += recList.Count - maxRecords;
+			Delete(Program.deleted);
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -668,8 +670,8 @@ namespace NSProgram
 							if (arrAct[rec.age] && (rand-- == 0))
 							{
 								rand = randMax;
-								if (rec.age > 0)
-									rec.age--;
+								if (rec.age < 0xff)
+									rec.age++;
 								else
 									continue;
 							}
@@ -703,16 +705,16 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (arrAct[1])
+			if (arrAct[254])
 			{
 				int structure = 0;
 				if (arrAge[0] < AgeMin())
-					structure = AgeMin() - arrAge[0];
+					structure = arrAge[0xff] - AgeMin();
 				if (arrAge[0] > AgeMax())
-					structure = arrAge[0] - AgeMax();
+					structure = arrAge[0xff] - AgeMax();
 				if (Program.isLog)
-					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {deleted:N0} structure {structure}");
-				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {deleted:N0} structure {structure}");
+					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
+				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
 			}
 			return true;
 		}
@@ -881,28 +883,37 @@ namespace NSProgram
 
 		public void ShowLevel(int lev, int len)
 		{
-			Console.WriteLine(String.Format("{0,4} {1," + len + "}", lev, arrAge[lev]));
+			int ageMax = AgeMax();
+			int ageMin = AgeMin();
+			int ageCou = arrAge[lev];
+			int del = 0;
+			if (ageCou < ageMin)
+				del = ageCou - ageMin;
+			if (ageCou > ageMax)
+				del = ageCou - ageMax;
+			Console.WriteLine("{0,4} {1," + len + "} {2," + len + "}", lev, arrAge[lev], del);
 		}
 
 		public void InfoStructure()
 		{
-			int l = recList.Count.ToString().Length;
+			int len = recList.Count.ToString().Length;
 			int ageAvg = AgeAvg();
 			int ageMax = AgeMax();
 			int ageMin = AgeMin();
 			int ageDel = AgeDel();
 			Console.WriteLine($"moves {recList.Count:N0} min {ageMin:N0} avg {ageAvg:N0} max {ageMax:N0} delta {ageDel:N0}");
-			Console.WriteLine(" age  count");
+			Console.WriteLine("{0,4} {1,"+len+"} {2,"+len+"}","age","count","delta");
 			Console.WriteLine();
 			RefreshAge();
-			ShowLevel(255, l);
-			for (int n = 254; n >= 0; n--)
+			ShowLevel(0, len);
+			for (int n = 1; n < 0xff; n++)
 			{
 				if ((arrAge[n] > ageMax) || (arrAge[n] < ageMin))
-					ShowLevel(n, l);
+					ShowLevel(n, len);
 				if (arrAge[n] == 0)
 					break;
 			}
+			ShowLevel(255, len);
 		}
 
 		public void InfoMoves(string moves)
