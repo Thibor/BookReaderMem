@@ -322,7 +322,7 @@ namespace NSProgram
 							book.chess.MakeMoves(lastMoves);
 							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
 							{
-								makeUpdate = isU;
+								makeUpdate = isW || isU;
 								continueUpdate = false;
 								added = 0;
 								updated = 0;
