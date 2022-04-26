@@ -241,7 +241,7 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return ((AgeAvg() << 1) / ((randMax << 1) - 1)) >> 1;
+			return ((AgeAvg() << 1) / (((randMax - 1) << 1) - 1)) >> 1;
 		}
 
 		int AgeMax()
