@@ -642,7 +642,8 @@ namespace NSProgram
 		{
 			string pt = p + ".tmp";
 			int rand = CChess.random.Next(randMax + 1);
-			double ageMax = AgeMax();
+			int ageMin = AgeMin();
+			int ageMax = AgeMax();
 			RefreshAge();
 			bool[] arrAct = new bool[0x100];
 			arrAct[0xff] = false;
@@ -706,10 +707,11 @@ namespace NSProgram
 			if (arrAct[254])
 			{
 				int structure = 0;
-				if (arrAge[0] < AgeMin())
-					structure = arrAge[0xff] - AgeMin();
-				if (arrAge[0] > AgeMax())
-					structure = arrAge[0xff] - AgeMax();
+				int age = arrAge[0xff];
+				if (age < ageMin)
+					structure = age - ageMin;
+				if (age > ageMax)
+					structure = age - ageMax;
 				if (Program.isLog)
 					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
 				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
