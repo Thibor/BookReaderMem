@@ -241,19 +241,17 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeMax() - AgeMin();
+			return ((AgeAvg() << 1) / ((randMax << 1) - 1)) >> 1;
 		}
 
 		int AgeMax()
 		{
-			int ageAvg = AgeAvg();
-			return Convert.ToInt32((ageAvg << 1) / (2.0 - 1.0 / (randMax + 1)));
+			return AgeAvg() + AgeDel();
 		}
 
 		int AgeMin()
 		{
-			int ageMax = AgeMax();
-			return Convert.ToInt32(ageMax * (1.0 - 1.0 / (randMax + 1)));
+			return AgeAvg() - AgeDel();
 		}
 
 		public void Clear()
@@ -413,22 +411,22 @@ namespace NSProgram
 			return false;
 		}
 
-		public int UpdateBack(string moves,bool age = true)
+		public int UpdateBack(string moves, bool age = true)
 		{
-			return UpdateBack(moves.Trim().Split(' '),age);
+			return UpdateBack(moves.Trim().Split(' '), age);
 		}
 
 		public int UpdateBack(List<string> moves, bool age = true)
 		{
-			return UpdateBack(moves.ToArray(),age);
+			return UpdateBack(moves.ToArray(), age);
 		}
 
-		public int UpdateBack(string[] moves,bool age = true)
+		public int UpdateBack(string[] moves, bool age = true)
 		{
 			int result = 0;
 			List<int> le = new List<int>();
 			chess.SetFen();
-			foreach(string m in moves)
+			foreach (string m in moves)
 			{
 				chess.MakeMove(m, out int emo);
 				le.Add(emo);
@@ -902,7 +900,7 @@ namespace NSProgram
 			int ageMin = AgeMin();
 			int ageDel = AgeDel();
 			Console.WriteLine($"moves {recList.Count:N0} min {ageMin:N0} avg {ageAvg:N0} max {ageMax:N0} delta {ageDel:N0}");
-			Console.WriteLine("{0,4} {1,"+len+"} {2,"+len+"}","age","count","delta");
+			Console.WriteLine("{0,4} {1," + len + "} {2," + len + "}", "age", "count", "delta");
 			Console.WriteLine();
 			RefreshAge();
 			ShowLevel(0, len);
