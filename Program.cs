@@ -365,17 +365,14 @@ namespace NSProgram
 									Console.WriteLine($"info string analyze start {analyzeMoves}");
 								}
 								if (engineProcess == null)
-								{
 									Console.WriteLine("enginemove");
-									if (changed)
-									{
-										changed = false;
-										book.SaveToFile();
-									}
-
-								}
 								else
 									engineProcess.StandardInput.WriteLine(msg);
+								if (changed)
+								{
+									changed = false;
+									book.SaveToFile();
+								}
 							}
 							break;
 						case "quit":
