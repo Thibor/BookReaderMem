@@ -411,23 +411,26 @@ namespace NSProgram
 			return false;
 		}
 
-		public int UpdateBack(string moves, bool age = true)
+		public int UpdateBack(string moves, int count = 0, bool age = true)
 		{
-			return UpdateBack(moves.Trim().Split(' '), age);
+			return UpdateBack(moves.Trim().Split(' '), count, age);
 		}
 
-		public int UpdateBack(List<string> moves, bool age = true)
+		public int UpdateBack(List<string> moves, int count = 0, bool age = true)
 		{
-			return UpdateBack(moves.ToArray(), age);
+			return UpdateBack(moves.ToArray(), count, age);
 		}
 
-		public int UpdateBack(string[] moves, bool age = true)
+		public int UpdateBack(string[] moves, int count = 0, bool age = true)
 		{
+			if ((count == 0) || (count > moves.Length))
+				count = moves.Length;
 			int result = 0;
 			List<int> le = new List<int>();
 			chess.SetFen();
-			foreach (string m in moves)
+			for (int n = 0; n < count; n++)
 			{
+				string m = moves[n];
 				chess.MakeMove(m, out int emo);
 				le.Add(emo);
 			}
@@ -503,22 +506,18 @@ namespace NSProgram
 					return ca;
 				ulong hash = GetHash();
 				int mate = GetMate(n, gameLength);
-				if ((n == moves.Length - 1) && (mate < 0))
-				{
-					if (recList.IsHash(hash))
-						break;
-					mate--;
-				}
+				sbyte mat = MateToMat(mate);
 				CRec rec = new CRec
 				{
-					hash = GetHash(),
-					mat = MateToMat(mate)
+					hash = hash,
+					mat = mat
 				};
 				if (recList.AddRec(rec))
 					ca++;
 				if ((Program.bookAdd > 0) && (ca >= Program.bookAdd))
 					break;
 			}
+			UpdateBack(moves,ca);
 			return ca;
 		}
 
@@ -646,13 +645,14 @@ namespace NSProgram
 			int ageMax = AgeMax();
 			RefreshAge();
 			bool[] arrAct = new bool[0x100];
-			arrAct[0xff] = false;
-			for (int n = 0; n < 0xff; n++)
+			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			Program.deleted = arrAct[254] ? 1 : 0;
+			Program.deleted = 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
+			{
 				Program.deleted += recList.Count - maxRecords;
-			Delete(Program.deleted);
+				Delete(Program.deleted);
+			}
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -672,7 +672,10 @@ namespace NSProgram
 								if (rec.age < 0xff)
 									rec.age++;
 								else
+								{
+									Program.deleted++;
 									continue;
+								}
 							}
 							WriteUInt64(writer, rec.hash);
 							writer.Write(rec.mat);
@@ -704,7 +707,7 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (arrAct[254])
+			if (arrAct[0xff])
 			{
 				int structure = 0;
 				int age = arrAge[0xff];
@@ -712,10 +715,10 @@ namespace NSProgram
 					structure = age - ageMin;
 				if (age > ageMax)
 					structure = age - ageMax;
-				if (Program.isLog)
-					log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
 				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
 			}
+			if (Program.isLog)
+				log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 			return true;
 		}
 
