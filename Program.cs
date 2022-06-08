@@ -337,8 +337,10 @@ namespace NSProgram
 								movesUci.Add(enMove);
 								lastLength = movesUci.Count;
 								if (isW)
+								{
 									added += book.AddUciMate(movesUci, lastLength);
-								book.SaveToFile();
+									changed = true;
+								}
 							}
 							break;
 						case "go":
@@ -349,7 +351,10 @@ namespace NSProgram
 							{
 								Console.WriteLine($"bestmove {move}");
 								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < 3))
+								{
+									changed = true;
 									book.AddUci(lastMoves);
+								}
 								emptyRow = 0;
 							}
 							else
@@ -378,11 +383,11 @@ namespace NSProgram
 									Console.WriteLine("enginemove");
 								else
 									engineProcess.StandardInput.WriteLine(msg);
-								if (changed)
-								{
-									changed = false;
-									book.SaveToFile();
-								}
+							}
+							if (changed)
+							{
+								changed = false;
+								book.SaveToFile();
 							}
 							break;
 						case "quit":
