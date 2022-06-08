@@ -339,8 +339,8 @@ namespace NSProgram
 								lastLength = movesUci.Count;
 								if (isW)
 								{
-									added += book.AddUciMate(movesUci, lastLength);
 									changed = true;
+									added += book.AddUciMate(movesUci, lastLength);
 								}
 							}
 							break;
@@ -354,7 +354,7 @@ namespace NSProgram
 								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < 3))
 								{
 									changed = true;
-									book.AddUci(lastMoves);
+									added += book.AddUci(lastMoves);
 								}
 								emptyRow = 0;
 							}
