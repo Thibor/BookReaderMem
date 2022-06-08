@@ -208,7 +208,6 @@ namespace NSProgram
    0x70CC73D90BC26E24, 0xE21A6B35DF0C3AD7, 0x003A93D8B2806962, 0x1C99DED33CB890A1,
    0xCF3145DE0ADD4289, 0xD0E4427A5514FB72, 0x77C621CC9FB3A483, 0x67A34DAC4356550B};
 		const int randMax = 9;
-		bool showLog = false;
 		string path = String.Empty;
 		public int errors = 0;
 		public int maxRecords = 0;
@@ -348,7 +347,6 @@ namespace NSProgram
 			{
 				return false;
 			}
-			showLog = true;
 			return true;
 		}
 
@@ -655,6 +653,8 @@ namespace NSProgram
 			bool[] arrAct = new bool[0x100];
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
+			if (Program.added == 0)
+				arrAct[0xff] = false;
 			Program.deleted = 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 			{
@@ -715,9 +715,8 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (showLog && arrAct[0xff])
+			if (arrAct[0xff])
 			{
-				showLog = false;
 				int structure = 0;
 				int age = arrAge[0xff];
 				if (age < ageMin)
