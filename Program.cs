@@ -318,6 +318,7 @@ namespace NSProgram
 							{
 								changed = false;
 								update = isW;
+								emptyRow = 0;
 								added = 0;
 								updated = 0;
 								deleted = 0;
