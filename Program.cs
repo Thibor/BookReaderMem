@@ -44,6 +44,10 @@ namespace NSProgram
 			/// </summary>
 			int bookLimitR = 0xf;
 			/// <summary>
+			/// Number of moves not found in a row.
+			/// </summary>
+			int emptyRow = 0;
+			/// <summary>
 			/// Random moves factor.
 			/// </summary>
 			int bookRandom = 60;
@@ -342,9 +346,15 @@ namespace NSProgram
 							if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
 								move = book.GetMove(lastFen, lastMoves, bookRandom);
 							if (move != String.Empty)
+							{
 								Console.WriteLine($"bestmove {move}");
+								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < 3))
+									book.AddUci(lastMoves);
+								emptyRow = 0;
+							}
 							else
 							{
+								emptyRow++;
 								if (update)
 								{
 									List<string> branch = book.GetRandomBranch();

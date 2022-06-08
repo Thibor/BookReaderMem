@@ -480,7 +480,8 @@ namespace NSProgram
 				{
 					hash = GetHash()
 				};
-				ca += recList.AddHash(rec);
+				if (recList.AddRec(rec))
+					ca++;
 			}
 			return ca;
 		}
@@ -517,7 +518,7 @@ namespace NSProgram
 				if ((Program.bookAdd > 0) && (ca >= Program.bookAdd))
 					break;
 			}
-			UpdateBack(moves,ca);
+			UpdateBack(moves, ca);
 			return ca;
 		}
 
@@ -568,6 +569,11 @@ namespace NSProgram
 			if (ext == ".pgn")
 				return SaveToPgn(p);
 			return false;
+		}
+
+		public void SaveToFile()
+		{
+			SaveToFile(GetBookPath());
 		}
 
 		public bool SaveToUci(string p)
@@ -725,11 +731,6 @@ namespace NSProgram
 		public int Delete(int c)
 		{
 			return recList.RecDelete(c);
-		}
-
-		public void SaveToFile()
-		{
-			SaveToFile(GetBookPath());
 		}
 
 		public static sbyte MateToMat(int mate)

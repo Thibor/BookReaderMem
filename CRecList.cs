@@ -25,7 +25,7 @@ namespace NSProgram
 				CRec r = this[index];
 				if (r.hash == rec.hash)
 				{
-					r.age = 0;
+					r.age = rec.age;
 					r.mat = rec.mat;
 					return false;
 				}
@@ -33,27 +33,6 @@ namespace NSProgram
 					Insert(index, rec);
 			}
 			return true;
-		}
-
-		public int AddHash(CRec rec)
-		{
-			int index = FindHash(rec.hash);
-			if (index == Count)
-				Add(rec);
-			else
-			{
-				CRec r = this[index];
-				if (r.hash == rec.hash)
-				{
-					if (r.mat < sbyte.MaxValue)
-						r.mat++;
-					r.age = 0;
-					return 0;
-				}
-				else
-					Insert(index, rec);
-			}
-			return 1;
 		}
 
 		public int RecDelete(int count)
