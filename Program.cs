@@ -363,8 +363,15 @@ namespace NSProgram
 								emptyRow++;
 								if (update)
 								{
-									List<string> branch = book.GetRandomBranch();
-									int up = book.UpdateBack(branch, 0, false);
+									int up = 0;
+									if (emptyRow == 1)
+										up = book.UpdateBack(lastMoves,0,false);
+									else
+									{
+										List<string> branch = book.GetRandomBranch();
+										up = book.UpdateBack(branch, 0, false);
+
+									}
 									if (up > 0)
 									{
 										changed = true;
