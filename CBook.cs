@@ -719,6 +719,7 @@ namespace NSProgram
 			{
 				int structure = 0;
 				int age = arrAge[0xff];
+				arrAge[0xff] = 0;
 				if (age < ageMin)
 					structure = age - ageMin;
 				if (age > ageMax)
