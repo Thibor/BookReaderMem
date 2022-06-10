@@ -654,8 +654,6 @@ namespace NSProgram
 				arrAct[n] = arrAge[n] > ageMax;
 			if (Program.added == 0)
 				arrAct[0xff] = false;
-			if (arrAct[0xff])
-				arrAge[0xff] = 0;
 			Program.deleted = 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 			{
