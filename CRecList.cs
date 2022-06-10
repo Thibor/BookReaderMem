@@ -99,9 +99,15 @@ namespace NSProgram
 			return null;
 		}
 
-		public bool IsHash(ulong hash)
+		public void DelHash(ulong hash)
 		{
-			int index = FindHash(hash);
+			if (IsHash(hash, out int index))
+				RemoveAt(index);
+		}
+
+		public bool IsHash(ulong hash,out int index)
+		{
+			index = FindHash(hash);
 			if (index < Count)
 				return this[index].hash == hash;
 			return false;

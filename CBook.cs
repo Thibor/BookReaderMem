@@ -647,14 +647,15 @@ namespace NSProgram
 		{
 			string pt = p + ".tmp";
 			int rand = CChess.random.Next(randMax + 1);
-			int ageMin = AgeMin();
 			int ageMax = AgeMax();
-			RefreshAge();
 			bool[] arrAct = new bool[0x100];
+			RefreshAge();
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
 			if (Program.added == 0)
 				arrAct[0xff] = false;
+			if (arrAct[0xff])
+				arrAge[0xff] = 0;
 			Program.deleted = 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 			{
@@ -681,6 +682,7 @@ namespace NSProgram
 									rec.age++;
 								else
 								{
+									recList.DelHash(rec.hash);
 									Program.deleted++;
 									continue;
 								}
@@ -716,16 +718,7 @@ namespace NSProgram
 				return false;
 			}
 			if (arrAct[0xff])
-			{
-				int structure = 0;
-				int age = arrAge[0xff];
-				arrAge[0xff] = 0;
-				if (age < ageMin)
-					structure = age - ageMin;
-				if (age > ageMax)
-					structure = age - ageMax;
-				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0} structure {structure}");
-			}
+				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 			if (Program.isLog)
 				log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 			return true;
