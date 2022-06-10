@@ -650,8 +650,9 @@ namespace NSProgram
 			int ageMax = AgeMax();
 			bool[] arrAct = new bool[0x100];
 			RefreshAge();
-			for (int n = 0; n <= 0xff; n++)
+			for (int n = 0; n < 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
+			arrAct[0xff] = false;
 			Program.deleted = 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 			{
@@ -664,36 +665,26 @@ namespace NSProgram
 				{
 					using (BinaryWriter writer = new BinaryWriter(fs))
 					{
-						List<ulong> hl = new List<ulong>();
 						ulong lastHash = 0;
 						recList.SortHash();
 						writer.Write(GetHeader());
 						foreach (CRec rec in recList)
 						{
-							if (rec.hash == lastHash) {
-								hl.Add(rec.hash);
+							if (rec.hash == lastHash)
+							{
 								Program.deleted++;
-							continue;
-						}
+								continue;
+							}
 							if (arrAct[rec.age] && (rand-- == 0))
 							{
 								rand = randMax;
-								if (rec.age < 0xff)
-									rec.age++;
-								else
-								{
-									hl.Add(rec.hash);
-									Program.deleted++;
-									continue;
-								}
+								rec.age++;
 							}
 							WriteUInt64(writer, rec.hash);
 							writer.Write(rec.mat);
 							writer.Write(rec.age);
 							lastHash = rec.hash;
 						}
-						foreach (ulong h in hl)
-							recList.DelHash(h);
 					}
 				}
 			}
@@ -719,7 +710,7 @@ namespace NSProgram
 			{
 				return false;
 			}
-			if (arrAct[0xff])
+			if (Program.deleted > 0)
 				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 			if (Program.isLog)
 				log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
