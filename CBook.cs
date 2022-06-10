@@ -652,8 +652,6 @@ namespace NSProgram
 			RefreshAge();
 			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			if (Program.added == 0)
-				arrAct[0xff] = false;
 			Program.deleted = 0;
 			if ((maxRecords > 0) && (recList.Count > maxRecords))
 			{
@@ -666,13 +664,17 @@ namespace NSProgram
 				{
 					using (BinaryWriter writer = new BinaryWriter(fs))
 					{
+						List<ulong> hl = new List<ulong>();
 						ulong lastHash = 0;
 						recList.SortHash();
 						writer.Write(GetHeader());
 						foreach (CRec rec in recList)
 						{
-							if (rec.hash == lastHash)
-								continue;
+							if (rec.hash == lastHash) {
+								hl.Add(rec.hash);
+								Program.deleted++;
+							continue;
+						}
 							if (arrAct[rec.age] && (rand-- == 0))
 							{
 								rand = randMax;
@@ -680,7 +682,7 @@ namespace NSProgram
 									rec.age++;
 								else
 								{
-									recList.DelHash(rec.hash);
+									hl.Add(rec.hash);
 									Program.deleted++;
 									continue;
 								}
@@ -690,6 +692,8 @@ namespace NSProgram
 							writer.Write(rec.age);
 							lastHash = rec.hash;
 						}
+						foreach (ulong h in hl)
+							recList.DelHash(h);
 					}
 				}
 			}
