@@ -654,10 +654,11 @@ namespace NSProgram
 				arrAct[n] = arrAge[n] > ageMax;
 			arrAct[0xff] = false;
 			Program.deleted = 0;
-			if ((maxRecords > 0) && (recList.Count > maxRecords))
+			int del = maxRecords == 0 ? arrAge[0xff] - ageMax : recList.Count - maxRecords;
+			if(del > 0)
 			{
-				Program.deleted += recList.Count - maxRecords;
-				Delete(Program.deleted);
+				Program.deleted += del;
+				Delete(del);
 			}
 			try
 			{
