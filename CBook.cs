@@ -653,13 +653,11 @@ namespace NSProgram
 			for (int n = 0; n < 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
 			arrAct[0xff] = false;
-			Program.deleted = 0;
-			int del = maxRecords == 0 ? arrAge[0xff] - ageMax : recList.Count - maxRecords;
-			if(del > 0)
-			{
-				Program.deleted += del;
-				Delete(del);
-			}
+			Program.deleted = maxRecords == 0 ? arrAge[0xff] - ageMax : recList.Count - maxRecords;
+			if (Program.deleted < 0)
+				Program.deleted = 0;
+			if(Program.deleted > 0)
+				Delete(Program.deleted);
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -712,7 +710,11 @@ namespace NSProgram
 				return false;
 			}
 			if (Program.deleted > 0)
+			{
 				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
+				Clear();
+				AddFileMem(p);
+			}
 			if (Program.isLog)
 				log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 			return true;
