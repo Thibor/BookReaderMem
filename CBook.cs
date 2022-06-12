@@ -653,9 +653,11 @@ namespace NSProgram
 			for (int n = 0; n < 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
 			arrAct[0xff] = false;
-			Program.deleted = maxRecords == 0 ? arrAge[0xff] - ageMax : recList.Count - maxRecords;
-			if (Program.deleted < 0)
-				Program.deleted = 0;
+			Program.deleted = 0;
+			if (maxRecords > 0)
+				Program.deleted= recList.Count - maxRecords;
+			else if(arrAge[0xfe] > ageMax)
+				Program.deleted = (arrAge[0xfe] - ageMax) >> 8;
 			if(Program.deleted > 0)
 				Delete(Program.deleted);
 			try
