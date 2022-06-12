@@ -650,16 +650,16 @@ namespace NSProgram
 			int ageMax = AgeMax();
 			bool[] arrAct = new bool[0x100];
 			RefreshAge();
-			for (int n = 0; n < 0xff; n++)
+			for (int n = 0; n <= 0xff; n++)
 				arrAct[n] = arrAge[n] > ageMax;
-			arrAct[0xff] = false;
 			Program.deleted = 0;
 			if (maxRecords > 0)
-				Program.deleted= recList.Count - maxRecords;
-			else if(arrAge[0xfe] > ageMax)
-				Program.deleted = (arrAge[0xfe] - ageMax) >> 8;
-			if(Program.deleted > 0)
+				Program.deleted = recList.Count - maxRecords;
+			else if ((arrAct[0xff]) && (arrAge[0xfe] > ageMax))
+				Program.deleted = (arrAge[0xfe] - ageMax) >> 7;
+			if (Program.deleted > 0)
 				Delete(Program.deleted);
+			arrAct[0xff] = false;
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
