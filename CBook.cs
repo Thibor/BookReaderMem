@@ -710,11 +710,7 @@ namespace NSProgram
 				return false;
 			}
 			if (Program.deleted > 0)
-			{
 				Console.WriteLine($"log book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
-				Clear();
-				AddFileMem(p);
-			}
 			if (Program.isLog)
 				log.Add($"book {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 			return true;
