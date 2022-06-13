@@ -647,6 +647,7 @@ namespace NSProgram
 		{
 			string pt = p + ".tmp";
 			int rand = CChess.random.Next(randMax) + 1;
+			int ageDel = AgeDel();
 			int ageMax = AgeMax();
 			bool[] arrAct = new bool[0x100];
 			RefreshAge();
@@ -656,7 +657,7 @@ namespace NSProgram
 			if (maxRecords > 0)
 				Program.deleted = recList.Count - maxRecords;
 			else if (arrAct[0xfe] && arrAct[0xff])
-				Program.deleted = (arrAge[0xfe] / randMax) >> 7;
+				Program.deleted = ageDel >> 5;
 			if (Program.deleted > 0)
 				Delete(Program.deleted);
 			arrAct[0xff] = false;
