@@ -293,6 +293,9 @@ namespace NSProgram
 							case "structure":
 								book.InfoStructure();
 								break;
+							case "update":
+								book.Update();
+								break;
 							case "save":
 								if (book.SaveToFile(Uci.GetValue(2, 0)))
 									Console.WriteLine("The book has been saved");

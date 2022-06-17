@@ -413,7 +413,7 @@ namespace NSProgram
 
 		public int UpdateBack(string moves, int count = 0, bool age = true)
 		{
-			return UpdateBack(moves.Trim().Split(' '), count, age);
+			return UpdateBack(moves.Trim().Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries), count, age);
 		}
 
 		public int UpdateBack(List<string> moves, int count = 0, bool age = true)
@@ -579,6 +579,7 @@ namespace NSProgram
 		public bool SaveToUci(string p)
 		{
 			int line = 0;
+			chess.SetFen();
 			recList.SetUsed();
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
@@ -602,6 +603,7 @@ namespace NSProgram
 		public bool SaveToPgn(string p)
 		{
 			int line = 0;
+			chess.SetFen();
 			recList.SetUsed();
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
@@ -933,6 +935,51 @@ namespace NSProgram
 					}
 				}
 			}
+		}
+
+		void DeleteNotUsed()
+		{
+			for(int n = recList.Count - 1; n >= 0; n--)
+			{
+				CRec rec = recList[n];
+				if (!rec.used)
+				{
+					recList.RemoveAt(n);
+					Program.deleted++;
+				}
+			}
+		}
+
+		public void Update()
+		{
+			Program.added = 0;
+			Program.updated = 0;
+			Program.deleted = 0;
+			int line = 0;
+			chess.SetFen();
+			recList.SetUsed();
+			List<string> sl = new List<string>();
+			do
+			{
+				branchList.Fill();
+				branchList.SetUsed();
+				string uci = branchList.GetUci();
+				if (!String.IsNullOrEmpty(uci))
+				{
+					sl.Add(uci);
+					Console.Write($"\rRecord {++line}");
+				}
+			} while (branchList.Next());
+			Console.WriteLine();
+			line = 0;
+			recList.SetUsed();
+			foreach (string uci in sl)
+			{
+				Program.updated += UpdateBack(uci);
+				Console.Write($"\rUpdate {++line}");
+			}
+			Console.WriteLine();
+			Console.WriteLine($"Records {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 		}
 
 	}
