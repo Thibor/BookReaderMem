@@ -971,6 +971,8 @@ namespace NSProgram
 				}
 			} while (branchList.Next());
 			Console.WriteLine();
+			int used = recList.GetUsed();
+			double pro = (used * 100.0) / recList.Count;
 			line = 0;
 			recList.SetUsed();
 			foreach (string uci in sl)
@@ -979,7 +981,8 @@ namespace NSProgram
 				Console.Write($"\rUpdate {++line}");
 			}
 			Console.WriteLine();
-			Console.WriteLine($"Records {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
+			Program.deleted += recList.DeleteNotUsed();
+			Console.WriteLine($"Records {recList.Count:N0} used {used:N0} ({pro:N2}%) added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 		}
 
 	}

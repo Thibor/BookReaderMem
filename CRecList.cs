@@ -52,6 +52,25 @@ namespace NSProgram
 			return c - Count;
 		}
 
+		public int DeleteNotUsed()
+		{
+			int del = 0;
+			Shuffle();
+			SortAge();
+			for(int n = Count -1;n >= 0; n--)
+			{
+				CRec rec = this[n];
+				if (rec.age < 0xff)
+					break;
+				if (rec.used)
+					continue;
+				RemoveAt(n);
+				del++;
+			}
+			SortHash();
+			return del;
+		}
+
 		public bool RecUpdate(CRec rec)
 		{
 			int index = FindHash(rec.hash);
@@ -117,6 +136,15 @@ namespace NSProgram
 		{
 			foreach (CRec rec in this)
 				rec.used = u;
+		}
+
+		public int GetUsed()
+		{
+			int used = 0;
+			foreach (CRec rec in this)
+				if (rec.used)
+					used++;
+			return used;
 		}
 
 		public void Shuffle()
