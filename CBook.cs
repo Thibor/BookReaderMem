@@ -413,7 +413,7 @@ namespace NSProgram
 
 		public int UpdateBack(string moves, int count = 0, bool age = true)
 		{
-			return UpdateBack(moves.Trim().Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries), count, age);
+			return UpdateBack(moves.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), count, age);
 		}
 
 		public int UpdateBack(List<string> moves, int count = 0, bool age = true)
@@ -648,21 +648,25 @@ namespace NSProgram
 		public bool SaveToMem(string p)
 		{
 			string pt = p + ".tmp";
-			int rand = CChess.random.Next(randMax) + 1;
-			int ageDel = AgeDel();
-			int ageMax = AgeMax();
-			bool[] arrAct = new bool[0x100];
+			int ageAvg = AgeAvg();
 			RefreshAge();
-			for (int n = 0; n <= 0xff; n++)
-				arrAct[n] = arrAge[n] > ageMax;
+			int maxAge = 0;
+			for (int n = 0; n < 0xff; n++)
+			{
+				int sum = arrAge[n];
+				if (n > 0)
+					sum += arrAge[n - 1];
+				if (sum < ageAvg)
+					break;
+				maxAge++;
+			}
 			Program.deleted = 0;
 			if (maxRecords > 0)
 				Program.deleted = recList.Count - maxRecords;
-			else if (arrAct[0xfe] && arrAct[0xff])
-				Program.deleted = ageDel >> 5;
+			else if (maxAge == 0xff)
+				Program.deleted = ageAvg >> 5;
 			if (Program.deleted > 0)
 				Delete(Program.deleted);
-			arrAct[0xff] = false;
 			try
 			{
 				using (FileStream fs = File.Open(pt, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -679,11 +683,8 @@ namespace NSProgram
 								Program.deleted++;
 								continue;
 							}
-							if (arrAct[rec.age] && (--rand == 0))
-							{
-								rand = randMax;
+							if (rec.age < maxAge)
 								rec.age++;
-							}
 							WriteUInt64(writer, rec.hash);
 							writer.Write(rec.mat);
 							writer.Write(rec.age);
@@ -939,7 +940,7 @@ namespace NSProgram
 
 		void DeleteNotUsed()
 		{
-			for(int n = recList.Count - 1; n >= 0; n--)
+			for (int n = recList.Count - 1; n >= 0; n--)
 			{
 				CRec rec = recList[n];
 				if (!rec.used)
