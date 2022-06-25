@@ -354,7 +354,7 @@ namespace NSProgram
 							if (move != String.Empty)
 							{
 								Console.WriteLine($"bestmove {move}");
-								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < 3))
+								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < (bookAdd + 1) >> 1))
 								{
 									changed = true;
 									added += book.AddUci(lastMoves);
