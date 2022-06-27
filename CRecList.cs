@@ -71,25 +71,6 @@ namespace NSProgram
 			return del;
 		}
 
-		public bool RecUpdate(CRec rec)
-		{
-			int index = FindHash(rec.hash);
-			if (index < Count)
-			{
-				CRec r = this[index];
-				if (r.hash == rec.hash)
-				{
-					r.age = rec.age;
-					if (r.mat != rec.mat)
-					{
-						r.mat = rec.mat;
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
 		public int FindHash(ulong hash)
 		{
 			int first = -1;

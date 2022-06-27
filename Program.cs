@@ -128,6 +128,7 @@ namespace NSProgram
 			string teacherFile = String.Join(" ", listTf);
 			string arguments = String.Join(" ", listEa);
 			string ext = Path.GetExtension(bookName);
+			Console.WriteLine($"info string book {CBook.name} ver {CBook.version}");
 			if (String.IsNullOrEmpty(ext))
 				bookName = $"{bookName}{CBook.defExt}";
 			bool bookLoaded = book.LoadFromFile(bookName);
@@ -232,7 +233,6 @@ namespace NSProgram
 				bookLimitR = 0;
 				bookLimitW = 0;
 			}
-			Console.WriteLine($"info string book {CBook.name} ver {CBook.version} moves {book.recList.Count:N0}");
 			do
 			{
 				lock (locker)
@@ -378,14 +378,14 @@ namespace NSProgram
 								{
 									int up = 0;
 									if (emptyRow == 1)
-										up = book.UpdateBack(lastMoves,0,false);
+										up = book.UpdateBack(lastMoves,0);
 									else
 									{
 										CBranchList bl = new CBranchList();
 										book.chess.SetFen();
 										bl.BlFill();
 										bl.SetUsed(false);
-										up = book.UpdateBack(bl.GetUci(),0,false);
+										up = book.UpdateBack(bl.GetUci(),0);
 									}
 									if (up > 0)
 									{

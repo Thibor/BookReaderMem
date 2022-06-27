@@ -302,6 +302,7 @@ namespace NSProgram
 				AddFileUci(p);
 			else if (ext == ".pgn")
 				AddFilePgn(p);
+			Console.WriteLine($"info string moves {recList.Count:N0}");
 			return true;
 		}
 
@@ -410,17 +411,17 @@ namespace NSProgram
 			return false;
 		}
 
-		public int UpdateBack(string moves, int count = 0, bool age = true)
+		public int UpdateBack(string moves, int count = 0)
 		{
-			return UpdateBack(moves.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), count, age);
+			return UpdateBack(moves.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries), count);
 		}
 
-		public int UpdateBack(List<string> moves, int count = 0, bool age = true)
+		public int UpdateBack(List<string> moves, int count = 0)
 		{
-			return UpdateBack(moves.ToArray(), count, age);
+			return UpdateBack(moves.ToArray(), count);
 		}
 
-		public int UpdateBack(string[] moves, int count = 0, bool age = true)
+		public int UpdateBack(string[] moves, int count = 0)
 		{
 			if ((count == 0) || (count > moves.Length))
 				count = moves.Length;
@@ -440,22 +441,17 @@ namespace NSProgram
 				CEmoList emoList = GetEmoList(false);
 				if (emoList.Count > 0)
 				{
-					CRec rec = new CRec
-					{
-						hash = GetHash()
-					};
-					int mat = -emoList[0].rec.mat;
+					ulong hash = GetHash();
+					sbyte mat = (sbyte)-emoList[0].rec.mat;
 					if (mat >= 0)//0 must become -1
 						mat--;
-					rec.mat = (sbyte)mat;
-					if (!age)
-					{
-						int index = recList.FindHash(rec.hash);
-						if (index < recList.Count)
-							rec.age = recList[index].age;
-					}
-					if (recList.RecUpdate(rec))
-						result++;
+					CRec rec = recList.GetRec(hash);
+					if (rec != null)
+						if (rec.mat != mat)
+						{
+							rec.mat = mat;
+							result++;
+						}
 				}
 			}
 			return result;
@@ -642,26 +638,30 @@ namespace NSProgram
 			return true;
 		}
 
-		public bool SaveToMem(string p)
+		int GetMaxAge()
 		{
-			string pt = p + ".tmp";
-			int ageAvg = AgeAvg();
-			RefreshAge();
-			int maxAge = 0;
+			int max = AgeMax();
 			int last = 0;
 			for (int n = 0; n < 0xff; n++)
 			{
 				int cur = arrAge[n];
-				if (cur + last < ageAvg)
-					break;
+				if (last + cur < max)
+					return n;
 				last = cur;
-				maxAge++;
 			}
+			return 0xfF;
+		}
+
+		public bool SaveToMem(string p)
+		{
+			string pt = p + ".tmp";
+			RefreshAge();
+			int maxAge = GetMaxAge();
 			Program.deleted = 0;
 			if (maxRecords > 0)
 				Program.deleted = recList.Count - maxRecords;
 			else if (maxAge == 0xff)
-				Program.deleted = ageAvg >> 5;
+				Program.deleted = AgeAvg() >> 5;
 			if (Program.deleted > 0)
 				Delete(Program.deleted);
 			try
@@ -820,17 +820,17 @@ namespace NSProgram
 			return el;
 		}
 
-		public CEmoList GetEmoList(bool onlyNotUsed = true,int repetytion = -1)
+		public CEmoList GetEmoList(bool onlyNotUsed = true, int repetytion = -1)
 		{
 			CEmoList emoList = new CEmoList();
-			List<int> moves = chess.GenerateValidMoves(out _,repetytion);
+			List<int> moves = chess.GenerateValidMoves(out _, repetytion);
 			foreach (int m in moves)
 			{
 				chess.MakeMove(m);
 				ulong hash = GetHash();
 				CRec rec = recList.GetRec(hash);
 				if (rec != null)
-					if(!rec.used || !onlyNotUsed)
+					if (!rec.used || !onlyNotUsed)
 					{
 						rec.used = true;
 						CEmo emo = new CEmo(m, rec);
@@ -842,7 +842,7 @@ namespace NSProgram
 			return emoList;
 		}
 
-		public string GetMove(string fen, string moves, int rnd,ref bool bookWrite)
+		public string GetMove(string fen, string moves, int rnd, ref bool bookWrite)
 		{
 			chess.SetFen(fen);
 			chess.MakeMoves(moves);
@@ -953,7 +953,8 @@ namespace NSProgram
 			double total = line;
 			int up = recList.Count;
 			int max;
-			do {
+			do
+			{
 				line = 0;
 				max = up;
 				up = 0;

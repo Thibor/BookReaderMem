@@ -37,11 +37,6 @@ namespace NSProgram
 
 	internal class CBranchList : List<CBranch>
 	{
-		public void Start()
-		{
-			Clear();
-			BlFill();
-		}
 
 		public void BlFill()
 		{
