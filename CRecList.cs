@@ -132,7 +132,7 @@ namespace NSProgram
 			return false;
 		}
 
-		public void SetUsed(bool u = false)
+		public void SetUsed(bool u)
 		{
 			foreach (CRec rec in this)
 				rec.used = u;

@@ -6,13 +6,14 @@ namespace NSProgram
 {
 	class CBranch
 	{
-		public int index = -1;
+		public int index = 0;
 		public CEmoList emoList = new CEmoList();
 
 		public void Fill()
 		{
-			index = -1;
+			index = 0;
 			emoList = Program.book.GetEmoList();
+			emoList.Shuffle();
 		}
 
 		public CEmo GetEmo()
@@ -22,24 +23,49 @@ namespace NSProgram
 			return null;
 		}
 
-		public CEmo Next()
+		public double GetBit()
 		{
-			index++;
-			return GetEmo();
+			return 1.0 / emoList.Count;
 		}
+
+		public double GetProcent()
+		{
+			return (index * 1.0) / emoList.Count;
+		}
+
 	}
 
 	internal class CBranchList : List<CBranch>
 	{
-		public bool Next()
+		public void Start()
+		{
+			Clear();
+			BlFill();
+		}
+
+		public void BlFill()
+		{
+			CBranch branch = new CBranch();
+			branch.Fill();
+			CEmo emo = branch.GetEmo();
+			if (emo != null)
+			{
+				Add(branch);
+				Program.book.chess.MakeMove(emo.emo);
+				BlFill();
+			}
+		}
+
+		public bool BlNext()
 		{
 			if (Count == 0)
 				return false;
 			CBranch lastBranch = this.Last();
 			CEmo lastEmo = lastBranch.GetEmo();
-			if(lastEmo != null)
+			lastBranch.index++;
+			CEmo newEmo = lastBranch.GetEmo();
+			if (lastEmo != null)
 				Program.book.chess.UnmakeMove(lastEmo.emo);
-			CEmo newEmo = lastBranch.Next();
 			if (newEmo != null)
 			{
 				Program.book.chess.MakeMove(newEmo.emo);
@@ -48,22 +74,20 @@ namespace NSProgram
 			else if (Count > 1)
 			{
 				RemoveAt(Count - 1);
-				return Next();
+				return BlNext();
 			}
 			return false;
 		}
 
-		public void Fill()
+		public double GetProcent()
 		{
-			CBranch branch = new CBranch();
-			branch.Fill();
-			CEmo emo = branch.Next();
-			if (emo != null)
-			{
-				Add(branch);
-				Program.book.chess.MakeMove(emo.emo);
-				Fill();
-			}
+			double b1 = Count > 0 ? this[0].GetBit() : 1.0;
+			double b2 = Count > 1 ? this[1].GetBit() * b1 : b1;
+			double b3 = Count > 1 ? this[2].GetBit() * b2 : b2;
+			double p1 = Count > 0 ? this[0].GetProcent() : 1.0;
+			double p2 = Count > 1 ? this[1].GetProcent() * b1 : b1;
+			double p3 = Count > 2 ? this[2].GetProcent() * b2 : b2;
+			return (p1 + p2 + p3 + b3) * 100.0;
 		}
 
 		public string GetUci()
@@ -81,24 +105,12 @@ namespace NSProgram
 			return uci.Trim();
 		}
 
-		public string GetIndex()
-		{
-			int len = 0;
-			string index = String.Empty;
-			foreach (CBranch branch in this)
-			{
-				index = $"{index} {branch.index}";
-				if (++len == 16)
-					break;
-			}
-			return index.Trim();
-		}
-
-		public void SetUsed()
+		public void SetUsed(bool used = true)
 		{
 			foreach (CBranch b in this)
-				b.emoList.SetUsed();
+				b.emoList.SetUsed(used);
 		}
+
 
 	}
 

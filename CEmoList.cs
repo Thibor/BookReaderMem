@@ -59,10 +59,10 @@ namespace NSProgram
 			return bst;
 		}
 
-		public void SetUsed()
+		public void SetUsed(bool used = true)
 		{
 			foreach(CEmo e in this)
-				e.rec.used = true;
+				e.rec.used = used;
 		}
 
 		public void Shuffle()

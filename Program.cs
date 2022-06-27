@@ -25,7 +25,9 @@ namespace NSProgram
 
 		static void Main(string[] args)
 		{
-			bool changed = false;
+			bool bookChanged = false;
+			bool bookUpdate = false;
+			bool bookWrite = false;
 			bool quit = false;
 			/// <summary>
 			/// Can start teacher.
@@ -53,7 +55,6 @@ namespace NSProgram
 			int bookRandom = 60;
 			int lastLength = 0;
 			string analyzeMoves = String.Empty;
-			bool update = false;
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci Uci = new CUci();
@@ -317,32 +318,32 @@ namespace NSProgram
 							lastMoves = Uci.GetValue("moves", "fen");
 							book.chess.SetFen(lastFen);
 							book.chess.MakeMoves(lastMoves);
-							if ((book.chess.g_moveNumber < 2) && String.IsNullOrEmpty(lastFen))
+							if (String.IsNullOrEmpty(lastFen))
 							{
-								changed = false;
-								update = isW;
-								emptyRow = 0;
-								added = 0;
-								updated = 0;
-								deleted = 0;
-								analyze = teacherProcess != null;
-								quit = false;
-								TeacherWriteLine("stop");
-							}
-							if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && book.chess.Is2ToEnd(out string myMove, out string enMove))
-							{
-								changed = false;
-								update = false;
-								string[] am = lastMoves.Split(' ');
-								List<string> movesUci = new List<string>();
-								foreach (string m in am)
-									movesUci.Add(m);
-								movesUci.Add(myMove);
-								movesUci.Add(enMove);
-								lastLength = movesUci.Count;
-								if (isW)
+								if (book.chess.g_moveNumber < 2)
 								{
-									changed = true;
+									bookChanged = false;
+									bookUpdate = isW;
+									bookWrite = isW;
+									emptyRow = 0;
+									added = 0;
+									updated = 0;
+									deleted = 0;
+									analyze = teacherProcess != null;
+									quit = false;
+									TeacherWriteLine("stop");
+								}
+								if (bookLoaded && bookWrite && book.chess.Is2ToEnd(out string myMove, out string enMove))
+								{
+									bookChanged = true;
+									bookUpdate = false;
+									string[] am = lastMoves.Split(' ');
+									List<string> movesUci = new List<string>();
+									foreach (string m in am)
+										movesUci.Add(m);
+									movesUci.Add(myMove);
+									movesUci.Add(enMove);
+									lastLength = movesUci.Count;
 									added += book.AddUciMate(movesUci, lastLength);
 								}
 							}
@@ -350,13 +351,13 @@ namespace NSProgram
 						case "go":
 							string move = String.Empty;
 							if ((bookLimitR == 0) || (bookLimitR > book.chess.g_moveNumber))
-								move = book.GetMove(lastFen, lastMoves, bookRandom);
+								move = book.GetMove(lastFen, lastMoves, bookRandom,ref bookWrite);
 							if (move != String.Empty)
 							{
 								Console.WriteLine($"bestmove {move}");
-								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < (bookAdd + 1) >> 1))
+								if (bookLoaded && isW && String.IsNullOrEmpty(lastFen) && (emptyRow > 0) && (emptyRow < bookAdd))
 								{
-									changed = true;
+									bookChanged = true;
 									added += book.AddUci(lastMoves);
 								}
 								emptyRow = 0;
@@ -364,23 +365,6 @@ namespace NSProgram
 							else
 							{
 								emptyRow++;
-								if (update)
-								{
-									int up = 0;
-									if (emptyRow == 1)
-										up = book.UpdateBack(lastMoves,0,false);
-									else
-									{
-										List<string> branch = book.GetRandomBranch();
-										up = book.UpdateBack(branch, 0, false);
-
-									}
-									if (up > 0)
-									{
-										changed = true;
-										updated += up;
-									}
-								}
 								if (analyze && (book.chess.GenerateValidMoves(out _).Count > 1))
 								{
 									analyze = false;
@@ -390,14 +374,33 @@ namespace NSProgram
 									TeacherWriteLine("go infinite");
 									Console.WriteLine($"info string analyze start {analyzeMoves}");
 								}
+								if (bookUpdate)
+								{
+									int up = 0;
+									if (emptyRow == 1)
+										up = book.UpdateBack(lastMoves,0,false);
+									else
+									{
+										CBranchList bl = new CBranchList();
+										book.chess.SetFen();
+										bl.BlFill();
+										bl.SetUsed(false);
+										up = book.UpdateBack(bl.GetUci(),0,false);
+									}
+									if (up > 0)
+									{
+										bookChanged = true;
+										updated += up;
+									}
+								}
 								if (engineProcess == null)
 									Console.WriteLine("enginemove");
 								else
 									engineProcess.StandardInput.WriteLine(msg);
 							}
-							if (changed)
+							if (bookChanged)
 							{
-								changed = false;
+								bookChanged = false;
 								book.SaveToFile();
 							}
 							break;
