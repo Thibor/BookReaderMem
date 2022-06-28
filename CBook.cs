@@ -291,19 +291,20 @@ namespace NSProgram
 
 		public bool AddFile(string p)
 		{
+			bool result = true;
 			if (!File.Exists(p) && (!File.Exists(p + ".tmp")))
 				return true;
 			if (String.IsNullOrEmpty(fileShortName))
 				fileShortName = Path.GetFileNameWithoutExtension(p);
 			string ext = Path.GetExtension(p).ToLower();
 			if (ext == defExt)
-				return AddFileMem(p);
+				result = AddFileMem(p);
 			else if (ext == ".uci")
 				AddFileUci(p);
 			else if (ext == ".pgn")
 				AddFilePgn(p);
 			Console.WriteLine($"info string moves {recList.Count:N0}");
-			return true;
+			return result;
 		}
 
 		bool AddFileMem(string p)
@@ -932,14 +933,12 @@ namespace NSProgram
 			Program.added = 0;
 			Program.updated = 0;
 			Program.deleted = 0;
-			chess.SetFen();
 			recList.SetUsed(false);
 			int line = 0;
 			List<string> sl = new List<string>();
-			branchList.Clear();
+			branchList.Start();
 			do
 			{
-				branchList.BlFill();
 				string uci = branchList.GetUci();
 				if (!String.IsNullOrEmpty(uci))
 				{
@@ -948,8 +947,9 @@ namespace NSProgram
 					Console.Write($"\rsearch {branchList.GetProcent():N4}%");
 				}
 			} while (branchList.BlNext());
+			int used = recList.GetUsed();
 			Console.WriteLine();
-			Console.WriteLine($"games {line:N0}");
+			Console.WriteLine($"games {line:N0} used {used}");
 			double total = line;
 			int up = recList.Count;
 			int max;
@@ -968,7 +968,6 @@ namespace NSProgram
 				Console.WriteLine($"Updated {up:N0}");
 				SaveToFile();
 			} while (max > up);
-			int used = recList.GetUsed();
 			double pro = (used * 100.0) / recList.Count;
 			Console.WriteLine($"records {recList.Count:N0} used {used:N0} ({pro:N2}%) added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 		}
