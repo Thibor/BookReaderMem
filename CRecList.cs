@@ -9,6 +9,11 @@ namespace NSProgram
 		public ulong hash = 0;
 		public sbyte mat = 0;
 		public byte age = 0;
+
+		public double GetValue()
+		{
+			return mat == 0 ? 0 : 1.0 / mat;
+		}
 	}
 
 	class CRecList : List<CRec>

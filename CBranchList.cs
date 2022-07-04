@@ -12,7 +12,7 @@ namespace NSProgram
 		public bool Fill()
 		{
 			index = 0;
-			emoList = Program.book.GetEmoList();
+			emoList = Program.book.GetEmoList(true);
 			emoList.Shuffle();
 			return emoList.Count > 0;
 		}
@@ -46,12 +46,18 @@ namespace NSProgram
 
 	internal class CBranchList : List<CBranch>
 	{
+		public int used = 0;
+		CRec start = null;
 
-		public void Start()
+		public bool Start()
 		{
+			used = 0;
 			Program.book.chess.SetFen();
+			ulong hash = Program.book.GetHash();
+			start = Program.book.recList.GetRec(hash);
 			Clear();
 			BlFill();
+			return Count > 0;
 		}
 
 		public void BlFill()
@@ -59,6 +65,7 @@ namespace NSProgram
 			CBranch branch = new CBranch();
 			if (branch.Fill())
 			{
+				used += branch.emoList.Count;
 				Add(branch);
 				Program.book.chess.MakeMove(branch.GetEmo().emo);
 				BlFill();
@@ -69,6 +76,13 @@ namespace NSProgram
 		{
 			if (Count == 0)
 				return false;
+			if (Count == 1)
+			{
+				Program.book.recList.SetUsed(false);
+				if (start != null)
+					start.used = true;
+				this[0].emoList.SetUsed();
+			}
 			CBranch lastBranch = this.Last();
 			CEmo lastEmo = lastBranch.GetEmo();
 			Program.book.chess.UnmakeMove(lastEmo.emo);
@@ -87,11 +101,10 @@ namespace NSProgram
 		{
 			double b1 = Count > 0 ? this[0].GetBit() : 1.0;
 			double b2 = Count > 1 ? this[1].GetBit() * b1 : b1;
-			double b3 = Count > 2 ? this[2].GetBit() * b2 : b2;
 			double p1 = Count > 0 ? this[0].GetProcent() : 1.0;
 			double p2 = Count > 1 ? this[1].GetProcent() * b1 : b1;
 			double p3 = Count > 2 ? this[2].GetProcent() * b2 : b2;
-			return (p1 + p2 + p3 + b3) * 100.0;
+			return (p1 + p2 + p3) * 100.0;
 		}
 
 		public string GetUci()

@@ -240,7 +240,7 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return AgeAvg() >> 3;
+			return (AgeAvg() >> 3) + 1;
 		}
 
 		int AgeMax()
@@ -439,18 +439,22 @@ namespace NSProgram
 			{
 				int emo = le[n];
 				chess.UnmakeMove(emo);
-				CEmoList emoList = GetEmoList(false);
+				CEmoList emoList = GetEmoList();
 				if (emoList.Count > 0)
 				{
 					ulong hash = GetHash();
-					sbyte mat = (sbyte)-emoList[0].rec.mat;
-					if (mat >= 0)//0 must become -1
-						mat--;
+					int mat = -emoList[0].rec.mat;
+					if (mat > 0)
+						mat++;
+					if (mat > 127)
+						mat = 127;
+					if (mat < -128)
+						mat = -128;
 					CRec rec = recList.GetRec(hash);
 					if (rec != null)
 						if (rec.mat != mat)
 						{
-							rec.mat = mat;
+							rec.mat = (sbyte)mat;
 							result++;
 						}
 				}
@@ -492,6 +496,16 @@ namespace NSProgram
 			return AddUci(moves.ToArray(), limit);
 		}
 
+		public int AddUciMate(string moves, int gameLength)
+		{
+			return AddUciMate(moves.Trim().Split(' '), gameLength);
+		}
+
+		public int AddUciMate(List<string> moves, int gameLength)
+		{
+			return AddUciMate(moves.ToArray(), gameLength);
+		}
+
 		public int AddUciMate(string[] moves, int gameLength)
 		{
 			int ca = 0;
@@ -502,8 +516,7 @@ namespace NSProgram
 				if (!chess.MakeMove(m, out _))
 					return ca;
 				ulong hash = GetHash();
-				int mate = GetMate(n, gameLength);
-				sbyte mat = MateToMat(mate);
+				sbyte mat = GetMat(n, gameLength);
 				CRec rec = new CRec
 				{
 					hash = hash,
@@ -516,16 +529,6 @@ namespace NSProgram
 			}
 			UpdateBack(moves, ca);
 			return ca;
-		}
-
-		public int AddUciMate(string moves, int gameLength)
-		{
-			return AddUciMate(moves.Trim().Split(' '), gameLength);
-		}
-
-		public int AddUciMate(List<string> moves, int gameLength)
-		{
-			return AddUciMate(moves.ToArray(), gameLength);
 		}
 
 		void RefreshAge()
@@ -574,66 +577,48 @@ namespace NSProgram
 
 		public bool SaveToUci(string p)
 		{
-			int line = 0;
-			chess.SetFen();
-			recList.SetUsed(false);
+			List<string> sl = GetGames();
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
 			{
-				do
-				{
-					branchList.BlFill();
-					string uci = branchList.GetUci();
-					if (!String.IsNullOrEmpty(uci))
-					{
-						Console.Write($"\rRecord {++line}");
-						sw.WriteLine(uci);
-					}
-				} while (branchList.BlNext());
+				foreach (String uci in sl)
+					sw.WriteLine(uci);
 			}
-			Console.WriteLine();
 			return true;
 		}
 
 		public bool SaveToPgn(string p)
 		{
+			List<string> sl = GetGames();
 			int line = 0;
-			chess.SetFen();
-			recList.SetUsed(false);
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
 			{
-				do
+				foreach (String uci in sl)
 				{
-					branchList.BlFill();
-					string uci = branchList.GetUci();
-					if (!String.IsNullOrEmpty(uci))
+					string[] arrMoves = uci.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+					chess.SetFen();
+					string pgn = String.Empty;
+					foreach (string umo in arrMoves)
 					{
-						string[] arrMoves = uci.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-						chess.SetFen();
-						string png = String.Empty;
-						foreach (string umo in arrMoves)
-						{
-							string san = chess.UmoToSan(umo);
-							if (san == String.Empty)
-								break;
-							int number = (chess.g_moveNumber >> 1) + 1;
-							if (chess.whiteTurn)
-								png += $" {number}. {san}";
-							else
-								png += $" {san}";
-							int emo = chess.UmoToEmo(umo);
-							chess.MakeMove(emo);
-						}
-
-						sw.WriteLine();
-						sw.WriteLine("[White \"White\"]");
-						sw.WriteLine("[Black \"Black\"]");
-						sw.WriteLine();
-						sw.WriteLine(png.Trim());
-						Console.Write($"\rRecord {++line}");
+						string san = chess.UmoToSan(umo);
+						if (san == String.Empty)
+							break;
+						int number = (chess.g_moveNumber >> 1) + 1;
+						if (chess.whiteTurn)
+							pgn += $" {number}. {san}";
+						else
+							pgn += $" {san}";
+						int emo = chess.UmoToEmo(umo);
+						chess.MakeMove(emo);
 					}
-				} while (branchList.BlNext());
+					sw.WriteLine();
+					sw.WriteLine("[White \"White\"]");
+					sw.WriteLine("[Black \"Black\"]");
+					sw.WriteLine();
+					sw.WriteLine(pgn.Trim());
+					Console.Write($"\rgames {++line}");
+				}
 			}
 			Console.WriteLine();
 			return true;
@@ -725,42 +710,21 @@ namespace NSProgram
 			return recList.RecDelete(c);
 		}
 
-		public static sbyte MateToMat(int mate)
-		{
-			if (mate > 0)
-			{
-				mate = 128 - mate;
-				if (mate < 0)
-					mate = 0;
-			}
-			if (mate < 0)
-			{
-				mate = -129 - mate;
-				if (mate > -1)
-					mate = -1;
-			}
-			return (sbyte)mate;
-		}
-
-		public static int MatToMate(sbyte mat)
-		{
-			if (mat >= 0)
-				return 128 - mat;
-			else
-				return -129 - mat;
-		}
-
 		public bool IsWinner(int index, int count)
 		{
 			return (index & 1) != (count & 1);
 		}
 
-		public int GetMate(int index, int count)
+		public sbyte GetMat(int index, int count)
 		{
 			int mate = (count - index + 1) >> 1;
 			if (!IsWinner(index, count))
 				mate = -mate;
-			return mate;
+			if (mate > 127)
+				mate = 127;
+			if (mate < -128)
+				mate = -128;
+			return (sbyte)mate;
 		}
 
 		public ulong GetHash()
@@ -788,13 +752,17 @@ namespace NSProgram
 					int i = 64 * shift + 8 * cy + x;
 					key ^= Random64[i];
 				}
-			if ((chess.g_castleRights & 1) != 0)
+			int cwk = chess.whiteTurn ? 4 : 1;
+			int cwq = chess.whiteTurn ? 8 : 2;
+			int cbk = chess.whiteTurn ? 1 : 4;
+			int cbq = chess.whiteTurn ? 2 : 8;
+			if ((chess.g_castleRights & cwk) != 0)
 				key ^= Random64[768];
-			if ((chess.g_castleRights & 2) != 0)
+			if ((chess.g_castleRights & cwq) != 0)
 				key ^= Random64[769];
-			if ((chess.g_castleRights & 4) != 0)
+			if ((chess.g_castleRights & cbk) != 0)
 				key ^= Random64[770];
-			if ((chess.g_castleRights & 8) != 0)
+			if ((chess.g_castleRights & cbq) != 0)
 				key ^= Random64[771];
 			string passing = chunks[3];
 			if (passing != "-")
@@ -821,7 +789,7 @@ namespace NSProgram
 			return el;
 		}
 
-		public CEmoList GetEmoList(bool onlyNotUsed = true, int repetytion = -1)
+		public CEmoList GetEmoList(bool onlyNotUsed = false, int repetytion = -1)
 		{
 			CEmoList emoList = new CEmoList();
 			List<int> moves = chess.GenerateValidMoves(out _, repetytion);
@@ -831,9 +799,10 @@ namespace NSProgram
 				ulong hash = GetHash();
 				CRec rec = recList.GetRec(hash);
 				if (rec != null)
-					if (!rec.used || !onlyNotUsed)
+					if (!onlyNotUsed || !rec.used)
 					{
-						rec.used = true;
+						if (onlyNotUsed)
+							rec.used = true;
 						CEmo emo = new CEmo(m, rec);
 						emoList.Add(emo);
 					}
@@ -863,9 +832,9 @@ namespace NSProgram
 				return String.Empty;
 			}
 			string umo = chess.EmoToUmo(bst.emo);
-			int mate = MatToMate(bst.rec.mat);
-			Console.WriteLine($"info score mate {mate}");
-			Console.WriteLine($"info string book {umo} {mate:+#;-#;0} possible {emoList.Count} age {bst.rec.age}");
+			if (bst.rec.mat != 0)
+				Console.WriteLine($"info score mate {bst.rec.mat}");
+			Console.WriteLine($"info string book {umo} {bst.rec.mat:+#;-#;0} possible {emoList.Count} age {bst.rec.age}");
 			return umo;
 		}
 
@@ -916,7 +885,7 @@ namespace NSProgram
 					Console.WriteLine("no moves found");
 				else
 				{
-					Console.WriteLine("id move  wage age");
+					Console.WriteLine("id move  mate age");
 					Console.WriteLine();
 					int i = 1;
 					foreach (CEmo e in el)
@@ -928,34 +897,35 @@ namespace NSProgram
 			}
 		}
 
+		List<string> GetGames()
+		{
+			List<string> sl = new List<string>();
+			if (branchList.Start())
+				do
+				{
+					string uci = branchList.GetUci();
+					sl.Add(uci);
+					Console.Write($"\rsearch {branchList.GetProcent():N4}%");
+				} while (branchList.BlNext());
+			double pro = (branchList.used * 100.0) / recList.Count;
+			Console.WriteLine();
+			Console.WriteLine($"games {sl.Count:N0} used {branchList.used:N0} ({pro:N2}%)");
+			sl.Sort();
+			return sl;
+		}
+
 		public void Update()
 		{
 			Program.added = 0;
 			Program.updated = 0;
 			Program.deleted = 0;
-			recList.SetUsed(false);
-			int line = 0;
-			List<string> sl = new List<string>();
-			branchList.Start();
-			do
-			{
-				string uci = branchList.GetUci();
-				if (!String.IsNullOrEmpty(uci))
-				{
-					line++;
-					sl.Add(uci);
-					Console.Write($"\rsearch {branchList.GetProcent():N4}%");
-				}
-			} while (branchList.BlNext());
-			int used = recList.GetUsed();
-			Console.WriteLine();
-			Console.WriteLine($"games {line:N0} used {used}");
-			double total = line;
+			List<string> sl = GetGames();
+			double total = sl.Count;
 			int up = recList.Count;
 			int max;
 			do
 			{
-				line = 0;
+				int line = 0;
 				max = up;
 				up = 0;
 				foreach (string uci in sl)
@@ -968,8 +938,7 @@ namespace NSProgram
 				Console.WriteLine($"Updated {up:N0}");
 				SaveToFile();
 			} while (max > up);
-			double pro = (used * 100.0) / recList.Count;
-			Console.WriteLine($"records {recList.Count:N0} used {used:N0} ({pro:N2}%) added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
+			Console.WriteLine($"records {recList.Count:N0} added {Program.added} updated {Program.updated} deleted {Program.deleted:N0}");
 		}
 
 	}
