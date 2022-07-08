@@ -577,7 +577,7 @@ namespace NSProgram
 
 		public bool SaveToUci(string p)
 		{
-			List<string> sl = GetGames();
+			List<string> sl = GetGames(Program.bookLimitW);
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
 			{
@@ -897,10 +897,10 @@ namespace NSProgram
 			}
 		}
 
-		List<string> GetGames()
+		List<string> GetGames(int limit = 0)
 		{
 			List<string> sl = new List<string>();
-			if (branchList.Start())
+			if (branchList.Start(limit))
 				do
 				{
 					string uci = branchList.GetUci();

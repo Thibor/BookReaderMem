@@ -48,15 +48,18 @@ namespace NSProgram
 	{
 		public int used = 0;
 		CRec start = null;
+		int limit = 0;
 
-		public bool Start()
+		public bool Start(int l)
 		{
+			limit = l;
 			used = 0;
 			Program.book.chess.SetFen();
 			ulong hash = Program.book.GetHash();
 			start = Program.book.recList.GetRec(hash);
 			Clear();
-			BlFill();
+			if ((limit == 0) || (Count < limit))
+				BlFill();
 			return Count > 0;
 		}
 
