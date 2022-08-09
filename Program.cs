@@ -35,6 +35,7 @@ namespace NSProgram
 			bool bookChanged = false;
 			bool bookUpdate = false;
 			bool bookWrite = false;
+			bool isInfo = false;
 			/// <summary>
 			/// Book can update moves.
 			/// </summary>
@@ -78,6 +79,10 @@ namespace NSProgram
 					case "-w"://writable
 						ax = ac;
 						isW = true;
+						break;
+					case "-info":
+						ax = ac;
+						isInfo = true;
 						break;
 					default:
 						switch (ax)
@@ -144,14 +149,14 @@ namespace NSProgram
 			}
 			else if (engineFile != String.Empty)
 				Console.WriteLine($"info string missing engine  [{engineFile}]");
-
-
 			if (bookLoaded && isW)
 			{
 				bookRandom = 0;
 				bookLimitR = 0;
 				bookLimitW = 0;
 			}
+			if (isInfo)
+				book.InfoMoves();
 			do
 			{
 				lock (locker)

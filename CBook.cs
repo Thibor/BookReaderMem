@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using NSChess;
 using RapLog;
 
 namespace NSProgram
@@ -832,9 +831,11 @@ namespace NSProgram
 				return String.Empty;
 			}
 			string umo = chess.EmoToUmo(bst.emo);
-			if (bst.rec.mat != 0)
+			if (bst.rec != null)
+			{
 				Console.WriteLine($"info score mate {bst.rec.mat}");
-			Console.WriteLine($"info string book {umo} {bst.rec.mat:+#;-#;0} possible {emoList.Count} age {bst.rec.age}");
+				Console.WriteLine($"info string book {umo} {bst.rec.mat:+#;-#;0} possible {emoList.Count} age {bst.rec.age}");
+			}
 			return umo;
 		}
 
@@ -873,7 +874,7 @@ namespace NSProgram
 			ShowLevel(255, len);
 		}
 
-		public void InfoMoves(string moves)
+		public void InfoMoves(string moves = "")
 		{
 			chess.SetFen();
 			if (!chess.MakeMoves(moves))
