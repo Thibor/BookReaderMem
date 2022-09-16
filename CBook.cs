@@ -239,7 +239,7 @@ namespace NSProgram
 
 		int AgeDel()
 		{
-			return (AgeAvg() >> 3) + 1;
+			return (AgeAvg() >> 1) + 1;
 		}
 
 		int AgeMax()
@@ -576,7 +576,7 @@ namespace NSProgram
 
 		public bool SaveToUci(string p)
 		{
-			List<string> sl = GetGames(Program.bookLimitW);
+			List<string> sl = GetGames();
 			FileStream fs = File.Open(p, FileMode.Create, FileAccess.Write, FileShare.None);
 			using (StreamWriter sw = new StreamWriter(fs))
 			{
@@ -898,10 +898,10 @@ namespace NSProgram
 			}
 		}
 
-		List<string> GetGames(int limit = 0)
+		List<string> GetGames()
 		{
 			List<string> sl = new List<string>();
-			if (branchList.Start(limit))
+			if (branchList.Start())
 				do
 				{
 					string uci = branchList.GetUci();

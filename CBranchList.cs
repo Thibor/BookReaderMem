@@ -47,19 +47,13 @@ namespace NSProgram
 	internal class CBranchList : List<CBranch>
 	{
 		public int used = 0;
-		CRec start = null;
-		int limit = 0;
 
-		public bool Start(int l)
+		public bool Start()
 		{
-			limit = l;
 			used = 0;
 			Program.book.chess.SetFen();
-			ulong hash = Program.book.GetHash();
-			start = Program.book.recList.GetRec(hash);
 			Clear();
-			if ((limit == 0) || (Count < limit))
-				BlFill();
+			BlFill();
 			return Count > 0;
 		}
 
@@ -71,7 +65,8 @@ namespace NSProgram
 				used += branch.emoList.Count;
 				Add(branch);
 				Program.book.chess.MakeMove(branch.GetEmo().emo);
-				BlFill();
+				if ((Program.bookLimitW == 0) || (Program.bookLimitW < Count))
+					BlFill();
 			}
 		}
 
@@ -79,13 +74,6 @@ namespace NSProgram
 		{
 			if (Count == 0)
 				return false;
-			if (Count == 1)
-			{
-				Program.book.recList.SetUsed(false);
-				if (start != null)
-					start.used = true;
-				this[0].emoList.SetUsed();
-			}
 			CBranch lastBranch = this.Last();
 			CEmo lastEmo = lastBranch.GetEmo();
 			Program.book.chess.UnmakeMove(lastEmo.emo);

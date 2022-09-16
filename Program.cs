@@ -56,7 +56,6 @@ namespace NSProgram
 			List<string> listBn = new List<string>();
 			List<string> listEf = new List<string>();
 			List<string> listEa = new List<string>();
-			List<string> listTf = new List<string>();
 			for (int n = 0; n < args.Length; n++)
 			{
 				string ac = args[n];
@@ -92,9 +91,6 @@ namespace NSProgram
 								break;
 							case "-ef":
 								listEf.Add(ac);
-								break;
-							case "-tf":
-								listTf.Add(ac);
 								break;
 							case "-ea":
 								listEa.Add(ac);
