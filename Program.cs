@@ -125,7 +125,7 @@ namespace NSProgram
 			bool bookLoaded = book.LoadFromFile(bookName);
 			if (bookLoaded && (book.recList.Count > 0))
 			{
-				Console.WriteLine($"info string book on");
+				Console.WriteLine($"info string book on {book.recList.Count:N0} moves 144 bpm");
 				if (isW)
 					Console.WriteLine($"info string write on");
 			}
