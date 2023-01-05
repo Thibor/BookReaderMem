@@ -173,7 +173,7 @@ namespace NSProgram
 					}
 					uci.SetMsg(msg);
 					int count = book.recList.Count;
-					if (uci.First() == "book")
+					if (uci.command == "book")
 					{
 						switch (uci.tokens[1])
 						{
@@ -273,9 +273,9 @@ namespace NSProgram
 						}
 						continue;
 					}
-					if ((uci.First() != "go") && (engineProcess != null))
+					if ((uci.command != "go") && (engineProcess != null))
 						engineProcess.StandardInput.WriteLine(msg);
-					switch (uci.First())
+					switch (uci.command)
 					{
 						case "position":
 							lastFen = uci.GetValue("fen", "moves");
@@ -357,7 +357,7 @@ namespace NSProgram
 							break;
 					}
 				}
-			} while (uci.First() != "quit");
+			} while (uci.command != "quit");
 		}
 	}
 }
