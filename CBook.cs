@@ -523,7 +523,7 @@ namespace NSProgram
 				};
 				if (recList.AddRec(rec))
 					ca++;
-				if ((Program.bookAdd > 0) && (ca >= Program.bookAdd))
+				if ((Program.bookLimitAdd > 0) && (ca >= Program.bookLimitAdd))
 					break;
 			}
 			UpdateBack(moves, ca);
