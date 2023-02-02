@@ -1,10 +1,33 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NSChess;
 
 namespace NSProgram
 {
 	class CChessExt : CChess
 	{
+		public int MoveProgress(string umo, bool wt)
+		{
+			UmoToSD(umo, out int s, out int d);
+			int sx = s % 8;
+			int dx = d % 8;
+			int sy = s / 8;
+			int dy = d / 8;
+			if (wt)
+				(sy, dy) = (dy, sy);
+			if (dy < sy)
+				return -1;
+			if (dy > sy)
+				return 1;
+			double ms = Math.Abs(sx - 3.5);
+			double md = Math.Abs(dx - 3.5);
+			if (ms < md)
+				return -1;
+			if (ms > md)
+				return 1;
+			return sy * 8 + sx > dy * 8 + dx ? -1 : 1;
+		}
+
 		public bool Is1ToEnd()
 		{
 			int count = 0;
@@ -113,41 +136,21 @@ namespace NSProgram
 				if (whiteTurn)
 				{
 					if ((x > 0) && (chars[i - 1] == 'P'))
-						chars[i] = 'w';
+						chars[i] = 'a';
 					if ((x < 7) && (chars[i + 1] == 'P'))
-						chars[i] = 'w';
+						chars[i] = 'a';
 
 				}
 				else
 				{
 					if ((x > 0) && (chars[i - 1] == 'p'))
-						chars[i] = 'W';
+						chars[i] = 'A';
 					if ((x < 7) && (chars[i + 1] == 'p'))
-						chars[i] = 'W';
+						chars[i] = 'A';
 				}
 			}
 
 			return new string(chars);
-		}
-
-		string BoaSToTnt(string boaS)
-		{
-			char[] chars = boaS.ToCharArray();
-			string result = "";
-			int empty = 0;
-			for (int x = 0; x < 64; x++)
-			{
-				if (chars[x] == '-')
-					empty++;
-				else
-				{
-					if (empty > 0)
-						result += empty.ToString();
-					result += chars[x];
-					empty = 0;
-				}
-			}
-			return result;
 		}
 
 		public string GetTnt()
@@ -155,29 +158,26 @@ namespace NSProgram
 			string boaS = GetBoaS();
 			if (!whiteTurn)
 				boaS = FlipVBoaS(boaS);
-			return BoaSToTnt(boaS);
+			return boaS;
 		}
 
 		public void SetTnt(string tnt)
 		{
 			whiteTurn = true;
 			g_castleRights = 0;
+			g_lastCastle = 0;
 			g_passing = 0;
-			for (int n = 0; n < 64; n++)
-				g_board[arrField[n]] = colorEmpty;
-			int i = 0;
+			g_moveNumber = 0;
 			for (int n = 0; n < tnt.Length; n++)
 			{
+				int index = arrField[n];
 				char c = tnt[n];
 				int piece = char.IsUpper(c) ? colorWhite : colorBlack;
-				int x = i % 8;
-				int y = i / 8;
-				int index = arrField[i];
 				switch (char.ToLower(c))
 				{
-					case 'w':
+					case 'a':
 						piece |= piecePawn;
-						g_passing = index;
+						g_passing = index - 16;
 						break;
 					case 'p':
 						piece |= piecePawn;
@@ -190,7 +190,7 @@ namespace NSProgram
 						break;
 					case 't':
 						piece |= pieceRook;
-						switch (i)
+						switch (n)
 						{
 							case 63:
 								g_castleRights |= 1;
@@ -217,17 +217,8 @@ namespace NSProgram
 						break;
 					default:
 						piece = colorEmpty;
-						int e = c - '0';
-						char c2 = tnt[n + 1];
-						if (char.IsDigit(c2))
-						{
-							e = e * 10 + (c2 - '0');
-							n++;
-						}
-						i += (e - 1);
 						break;
 				}
-				i++;
 				g_board[index] = piece;
 			}
 		}

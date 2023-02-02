@@ -14,7 +14,7 @@ namespace NSProgram
 			emo = e;
 		}
 
-		public CEmo(int e,CRec r)
+		public CEmo(int e, CRec r)
 		{
 			emo = e;
 			rec = r;
@@ -24,7 +24,6 @@ namespace NSProgram
 
 	class CEmoList : List<CEmo>
 	{
-		readonly static Random rnd = new Random();
 
 		public CEmo GetEmo(int emo)
 		{
@@ -49,37 +48,13 @@ namespace NSProgram
 			return this[CChess.random.Next(i1, i2)];
 		}
 
-		public void SetUsed(bool used = true)
+		public void SortGames()
 		{
-			foreach(CEmo e in this)
-				e.rec.used = used;
-		}
-
-		public void Shuffle()
-		{
-			int n = Count;
-			while (n > 1)
-			{
-				int k = rnd.Next(n--);
-				CEmo value = this[k];
-				this[k] = this[n];
-				this[n] = value;
-			}
-		}
-
-		public void SortMat()
-		{
-			Shuffle();
 			Sort(delegate (CEmo e1, CEmo e2)
 			{
-				double r1 = e1.rec.GetValue();
-				double r2 = e2.rec.GetValue();
-				if (r1 > r2)
-					return -1;
-				if (r2 > r1)
-					return 1;
-				return e2.rec.age - e1.rec.age;
+				return e2.rec.games - e1.rec.games;
 			});
 		}
+
 	}
 }
