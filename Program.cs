@@ -15,15 +15,15 @@ namespace NSProgram
 		/// <summary>
 		/// Moves added to book per game.
 		/// </summary>
-		public static int bookLimitAdd = 5;
+		public static int bookLimitAdd = 8;
 		/// <summary>
 		/// Limit ply to wrtie.
 		/// </summary>
-		public static int bookLimitW = 16;
+		public static int bookLimitW = 8;
 		/// <summary>
 		/// Limit ply to read.
 		/// </summary>
-		public static int bookLimitR = 16;
+		public static int bookLimitR = 8;
 		public static bool isIv = false;
 		public static CRapLog log = new CRapLog(false);
 		public static CBook book = new CBook();
