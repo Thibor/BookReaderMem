@@ -47,7 +47,7 @@ namespace NSProgram
 					string headerBst = GetHeader();
 					string headerCur = reader.ReadString();
 					if (!Program.isIv && (headerCur != headerBst))
-						Console.WriteLine($"This program only supports version  [{headerBst}]");
+						Console.WriteLine($"This program only supports version [{headerBst}]");
 					else
 					{
 						while (reader.BaseStream.Position != reader.BaseStream.Length)
@@ -83,7 +83,7 @@ namespace NSProgram
 					writer.Write(GetHeader());
 					foreach (CRec rec in recList)
 					{
-						if (rec.tnt == lastTnt)
+						if ((rec.tnt == lastTnt) || (rec.games < 1))
 						{
 							Program.deleted++;
 							continue;

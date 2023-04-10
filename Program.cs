@@ -39,7 +39,7 @@ namespace NSProgram
 			/// <summary>
 			/// Random moves factor.
 			/// </summary>
-			int bookRandom = 60;
+			int bookRandom = 100;
 			string lastFen = String.Empty;
 			string lastMoves = String.Empty;
 			CUci uci = new CUci();
@@ -203,20 +203,20 @@ namespace NSProgram
 									Console.WriteLine("Writing to the file has failed");
 								break;
 							case "getoption":
-								Console.WriteLine($"option name Book file type string default book{CBook.defExt}");
-								Console.WriteLine($"option name Write type check default false");
-								Console.WriteLine($"option name Log type check default false");
-								Console.WriteLine($"option name Limit add moves type spin default {bookLimitAdd} min 0 max 100");
-								Console.WriteLine($"option name Limit read moves type spin default {bookLimitR} min 0 max 100");
-								Console.WriteLine($"option name Limit write moves type spin default {bookLimitW} min 0 max 100");
-								Console.WriteLine($"option name Random moves type spin default {bookRandom} min 0 max 201");
+								Console.WriteLine($"option name book_file type string default book{CBook.defExt}");
+								Console.WriteLine($"option name write type check default false");
+								Console.WriteLine($"option name log type check default false");
+								Console.WriteLine($"option name limit_add_moves type spin default {bookLimitAdd} min 0 max 100");
+								Console.WriteLine($"option name limit_read_moves type spin default {bookLimitR} min 0 max 100");
+								Console.WriteLine($"option name limit_write_moves type spin default {bookLimitW} min 0 max 100");
+								Console.WriteLine($"option name random_moves type spin default {bookRandom} min 0 max 201");
 								Console.WriteLine("optionend");
 								break;
 							case "setoption":
 								switch (uci.GetValue("name", "value").ToLower())
 								{
-									case "book file":
-										SetBookFile(uci.GetValue("value"));
+									case "book_file":
+										bookFile = uci.GetValue("value");
 										break;
 									case "write":
 										isW = uci.GetValue("value") == "true";
@@ -224,19 +224,22 @@ namespace NSProgram
 									case "log":
 										log.enabled = uci.GetValue("value") == "true";
 										break;
-									case "limit add":
+									case "limit_add_moves":
 										bookLimitAdd = uci.GetInt("value");
 										break;
-									case "limit read":
+									case "limit_read_moves":
 										bookLimitR = uci.GetInt("value");
 										break;
-									case "limit write":
+									case "limit_write_moves":
 										bookLimitW = uci.GetInt("value");
 										break;
-									case "Random":
+									case "random_moves":
 										bookRandom = uci.GetInt("value");
 										break;
 								}
+								break;
+							case "optionend":
+								SetBookFile(bookFile);
 								break;
 							default:
 								Console.WriteLine($"Unknown command [{uci.tokens[1]}]");
