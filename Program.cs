@@ -136,7 +136,6 @@ namespace NSProgram
 					Console.WriteLine($"info string missing engine  [{engineFile}]");
 			if (bookLoaded && isW)
 			{
-				bookRandom = 0;
 				bookLimitR = 0;
 				bookLimitW = 0;
 			}
