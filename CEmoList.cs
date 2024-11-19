@@ -42,9 +42,9 @@ namespace NSProgram
 			int total = 0;
 			for(int n=0;n<Count;n++)
 			{
-				int games = this[n].rec.games;
-				total += games;
-				if (rnd.Next(total) < games)
+				int value = this[n].rec.Value();
+				total += value;
+				if (rnd.Next(total) < value)
 					bst = n;
 			}
 			return this[bst];
@@ -64,14 +64,14 @@ namespace NSProgram
 				i2 = (Count * random) / 100;
 			else
 				i1 = ((Count - 1) * (random - 100)) / 100;
-			return this[CChess.rnd.Next(i1, i2)];
+			return this[CChess.random.Next(i1, i2)];
 		}
 
 		public void SortGames()
 		{
 			Sort(delegate (CEmo e1, CEmo e2)
 			{
-				return e2.rec.games - e1.rec.games;
+				return e2.rec.Value() - e1.rec.Value();
 			});
 		}
 
