@@ -118,8 +118,9 @@ namespace NSProgram
 			string bookFile = String.Join(" ", listBn);
 			string engineFile = String.Join(" ", listEf);
 			string engineArguments = String.Join(" ", listEa);
-			Console.WriteLine($"info string book {CBook.name} ver {CBook.version}");
-			bool bookLoaded = SetBookFile(bookFile);
+            Console.WriteLine($"idbook name {CHeader.name}");
+            Console.WriteLine($"idbook version {CHeader.version}");
+            bool bookLoaded = SetBookFile(bookFile);
 			Process engineProcess = null;
 			if (File.Exists(engineFile))
 			{
@@ -201,22 +202,25 @@ namespace NSProgram
 								else
 									Console.WriteLine("Writing to the file has failed");
 								break;
-							case "getoption":
+                            case "info":
+                                book.ShowInfo();
+                                break;
+                            case "getoption":
 								Console.WriteLine($"option name book_file type string default book{CBook.defExt}");
 								Console.WriteLine($"option name write type check default false");
 								Console.WriteLine($"option name log type check default false");
 								Console.WriteLine($"option name limit_add_moves type spin default {bookLimitAdd} min 0 max 100");
-								Console.WriteLine($"option name limit_read_moves type spin default {bookLimitR} min 0 max 100");
-								Console.WriteLine($"option name limit_write_moves type spin default {bookLimitW} min 0 max 100");
-								Console.WriteLine($"option name random_moves type spin default {bookRandom} min 0 max 201");
+								Console.WriteLine($"option name limit_ply_read type spin default {bookLimitR} min 0 max 100");
+								Console.WriteLine($"option name limit_ply_write type spin default {bookLimitW} min 0 max 100");
+								Console.WriteLine($"option name random type spin default {bookRandom} min 0 max 201");
 								Console.WriteLine("optionend");
 								break;
 							case "setoption":
 								switch (uci.GetValue("name", "value").ToLower())
 								{
 									case "book_file":
-										bookFile = uci.GetValue("value");
-										break;
+                                        SetBookFile(uci.GetValue("value"));
+                                        break;
 									case "write":
 										isW = uci.GetValue("value") == "true";
 										break;
@@ -226,19 +230,16 @@ namespace NSProgram
 									case "limit_add_moves":
 										bookLimitAdd = uci.GetInt("value");
 										break;
-									case "limit_read_moves":
+									case "limit_ply_read":
 										bookLimitR = uci.GetInt("value");
 										break;
-									case "limit_write_moves":
+									case "limit_ply_write":
 										bookLimitW = uci.GetInt("value");
 										break;
-									case "random_moves":
+									case "random":
 										bookRandom = uci.GetInt("value");
 										break;
 								}
-								break;
-							case "optionend":
-								SetBookFile(bookFile);
 								break;
 							default:
 								Console.WriteLine($"Unknown command [{uci.tokens[1]}]");

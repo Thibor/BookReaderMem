@@ -15,12 +15,11 @@ namespace NSProgram
         public int errors = 0;
         public int maxRecords = 0;
         int lastCount = 0;
-        public const string name = "BookReaderMem";
-        public const string version = "2023-01-31";
         public const string defExt = ".mem";
         public CChessExt chess = new CChessExt();
         public CRecList recList = new CRecList();
         readonly Stopwatch stopWatch = new Stopwatch();
+        public readonly CHeader header = new CHeader();
 
         #region file mem
 
@@ -44,10 +43,9 @@ namespace NSProgram
                 using (FileStream fs = File.Open(p, FileMode.Open, FileAccess.Read, FileShare.Read))
                 using (BinaryReader reader = new BinaryReader(fs))
                 {
-                    string headerBst = GetHeader();
                     string headerCur = reader.ReadString();
-                    if (!Program.isIv && (headerCur != headerBst))
-                        Console.WriteLine($"This program only supports version [{headerBst}]");
+                    if (!Program.isIv && !header.FromStr(headerCur))
+                        Console.WriteLine($"This program only supports version [{header.ToStr()}]");
                     else
                     {
                         while (reader.BaseStream.Position != reader.BaseStream.Length)
@@ -57,7 +55,7 @@ namespace NSProgram
                             ulong w = ReadUInt64(reader);
                             byte win = ReadU8(reader);
                             byte loose = ReadU8(reader);
-                            CRec rec = new CRec(MbwToTnt(m, b, w)) { win = win,loose=loose };
+                            CRec rec = new CRec(MbwToTnt(m, b, w)) { win = win, lost = loose };
                             recList.Add(rec);
                         }
                     }
@@ -81,10 +79,10 @@ namespace NSProgram
                 {
                     string lastTnt = String.Empty;
                     recList.SortTnt();
-                    writer.Write(GetHeader());
+                    writer.Write(header.ToStr());
                     foreach (CRec rec in recList)
                     {
-                        if (rec.tnt == lastTnt)
+                        if ((rec.tnt == lastTnt) || (rec.win < 1))
                         {
                             Program.deleted++;
                             continue;
@@ -94,7 +92,7 @@ namespace NSProgram
                         WriteUInt64(writer, b);
                         WriteUInt64(writer, w);
                         WriteU8(writer, rec.win);
-                        WriteU8(writer, rec.loose);
+                        WriteU8(writer, rec.lost);
                         lastTnt = rec.tnt;
                     }
                 }
@@ -202,11 +200,6 @@ namespace NSProgram
             recList.Clear();
         }
 
-        string GetHeader()
-        {
-            return $"{name} {version}";
-        }
-
         public bool AddFen(string fen)
         {
             if (chess.SetFen(fen))
@@ -246,11 +239,11 @@ namespace NSProgram
                     if (iw)
                         rec.win++;
                     else
-                        rec.loose++;
-                    if ((rec.win == 0xff) || (rec.loose == 0xff))
+                        rec.lost++;
+                    if ((rec.win == 0xff) || (rec.lost == 0xff))
                     {
                         rec.win >>= 1;
-                        rec.loose >>= 1;
+                        rec.lost >>= 1;
                     }
                     if (recList.AddRec(rec))
                         ca++;
@@ -288,12 +281,7 @@ namespace NSProgram
                 if (iw)
                     rec.win++;
                 else
-                    rec.loose++;
-                if ((rec.win == 0xff) || (rec.loose == 0xff))
-                {
-                    rec.win >>= 1;
-                    rec.loose >>= 1;
-                }
+                    rec.lost++;
                 if (recList.AddRec(rec))
                     ca++;
                 if ((Program.bookLimitAdd > 0) && (ca >= Program.bookLimitAdd))
@@ -556,7 +544,7 @@ namespace NSProgram
             }
             string umo = chess.EmoToUmo(bst.emo);
             if (bst.rec != null)
-                Console.WriteLine($"info string book {umo} games {bst.rec.win + bst.rec.loose} possible {emoList.Count}");
+                Console.WriteLine($"info string book {umo} games {bst.rec.win + bst.rec.lost} possible {emoList.Count}");
             return umo;
         }
 
@@ -567,18 +555,19 @@ namespace NSProgram
                 Console.WriteLine("wrong moves");
             else
             {
+                string frm = "{0,7} {1,7} {2,7} {3,7} {4,7}";
                 CEmoList el = GetEmoList();
                 if (el.Count == 0)
                     Console.WriteLine("no moves found");
                 else
                 {
-                    Console.WriteLine("id move  value");
                     Console.WriteLine();
+                    Console.WriteLine(frm,"id", "move","value","win","lost");
                     int i = 1;
                     foreach (CEmo e in el)
                     {
                         string umo = chess.EmoToUmo(e.emo);
-                        Console.WriteLine(String.Format("{0,2} {1,-4} {2,6}", i++, umo, e.rec.Value()));
+                        Console.WriteLine(frm, i++, umo, e.rec.Value(), e.rec.win, e.rec.lost);
                     }
                 }
             }
@@ -745,6 +734,16 @@ namespace NSProgram
         }
 
         #endregion load
+
+        public void ShowInfo()
+        {
+            if (recList.Count == 0)
+            {
+                Console.WriteLine("no records");
+                return;
+            }
+            InfoMoves();
+        }
 
     }
 }

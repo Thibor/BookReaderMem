@@ -53,6 +53,7 @@
     <Compile Include="CBook.cs" />
     <Compile Include="CChessExt.cs" />
     <Compile Include="CEmoList.cs" />
+    <Compile Include="CHeader.cs" />
     <Compile Include="CRapLog.cs" />
     <Compile Include="CRecList.cs" />
     <Compile Include="CUci.cs" />

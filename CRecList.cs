@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace NSProgram
 {
     class CRec
     {
         public byte win = 0;
-        public byte loose = 0;
+        public byte lost = 0;
         public string tnt = String.Empty;
 
         public CRec(string tnt)
@@ -17,12 +16,12 @@ namespace NSProgram
 
         public int Games()
         {
-            return win + loose;
+            return win + lost + 1;
         }
 
         public int Value()
         {
-            return (win * 1000 + 1) / (Games() + 1) +1;
+            return (win * 1000) / Games();
         }
 
     }
@@ -42,7 +41,7 @@ namespace NSProgram
                 if (r.tnt == rec.tnt)
                 {
                     r.win = rec.win;
-                    r.loose = rec.loose;
+                    r.lost = rec.lost;
                     return false;
                 }
                 else
@@ -61,8 +60,13 @@ namespace NSProgram
                 CRec r = this[index];
                 if (r.tnt == rec.tnt)
                 {
-                    this[index].win += rec.win;
-                    this[index].loose += rec.loose;
+                    r.win += rec.win;
+                    r.lost += rec.lost;
+                    if ((r.win == 0xff) || (r.lost == 0xff))
+                    {
+                        r.win >>= 1;
+                        r.lost >>= 1;
+                    }
                     return false;
                 }
                 else
