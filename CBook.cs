@@ -82,7 +82,7 @@ namespace NSProgram
                     writer.Write(header.ToStr());
                     foreach (CRec rec in recList)
                     {
-                        if ((rec.tnt == lastTnt) || (rec.win < 1))
+                        if ((rec.tnt == lastTnt) || ((rec.win < 1) && (rec.lost > 0xf)))
                         {
                             Program.deleted++;
                             continue;
@@ -562,7 +562,7 @@ namespace NSProgram
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine(frm,"id", "move","value","win","lost");
+                    Console.WriteLine(frm, "id", "move", "value", "win", "lost");
                     int i = 1;
                     foreach (CEmo e in el)
                     {
