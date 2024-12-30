@@ -16,12 +16,15 @@ namespace NSProgram
 
         public int Games()
         {
-            return win + lost + 1;
+            return win + lost;
         }
 
         public int Value()
         {
-            return (win * 1000) / Games();
+            int g = Games();
+            if(g==0)
+                return 0;
+            return (win * 800) / g - 400;
         }
 
     }
@@ -29,26 +32,6 @@ namespace NSProgram
     class CRecList : List<CRec>
     {
         readonly static Random rnd = new Random();
-
-        public bool ReplaceRec(CRec rec)
-        {
-            int index = FindTnt(rec.tnt);
-            if (index == Count)
-                Add(rec);
-            else
-            {
-                CRec r = this[index];
-                if (r.tnt == rec.tnt)
-                {
-                    r.win = rec.win;
-                    r.lost = rec.lost;
-                    return false;
-                }
-                else
-                    Insert(index, rec);
-            }
-            return true;
-        }
 
         public bool AddRec(CRec rec)
         {
@@ -109,14 +92,6 @@ namespace NSProgram
             }
         }
 
-        public CRec GetRec()
-        {
-            int index = rnd.Next(Count);
-            if (index < Count)
-                return this[index];
-            return null;
-        }
-
         public CRec GetRec(string tnt)
         {
             int index = FindTnt(tnt);
@@ -124,30 +99,6 @@ namespace NSProgram
                 if (this[index].tnt == tnt)
                     return this[index];
             return null;
-        }
-
-        public void DelTnt(string tnt)
-        {
-            if (IsTnt(tnt, out int index))
-                RemoveAt(index);
-        }
-
-        public bool IsTnt(string tnt, out int index)
-        {
-            index = FindTnt(tnt);
-            if (index < Count)
-                return this[index].tnt == tnt;
-            return false;
-        }
-
-        public void SortRnd()
-        {
-            int n = Count;
-            while (n > 1)
-            {
-                int k = rnd.Next(n--);
-                (this[n], this[k]) = (this[k], this[n]);
-            }
         }
 
         public void SortTnt()

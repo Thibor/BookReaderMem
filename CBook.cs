@@ -544,7 +544,7 @@ namespace NSProgram
             }
             string umo = chess.EmoToUmo(bst.emo);
             if (bst.rec != null)
-                Console.WriteLine($"info string book {umo} games {bst.rec.win + bst.rec.lost} possible {emoList.Count}");
+                Console.WriteLine($"info score cp {bst.rec.Value()}");
             return umo;
         }
 
@@ -562,7 +562,7 @@ namespace NSProgram
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine(frm, "id", "move", "value", "win", "lost");
+                    Console.WriteLine(frm, "id", "move", "score", "win", "lost");
                     int i = 1;
                     foreach (CEmo e in el)
                     {
