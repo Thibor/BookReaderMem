@@ -544,7 +544,7 @@ namespace NSProgram
             }
             string umo = chess.EmoToUmo(bst.emo);
             if (bst.rec != null)
-                Console.WriteLine($"info score cp {bst.rec.Value()}");
+                Console.WriteLine($"info score cp {bst.rec.GetScore()}");
             return umo;
         }
 
@@ -567,7 +567,7 @@ namespace NSProgram
                     foreach (CEmo e in el)
                     {
                         string umo = chess.EmoToUmo(e.emo);
-                        Console.WriteLine(frm, i++, umo, e.rec.Value(), e.rec.win, e.rec.lost);
+                        Console.WriteLine(frm, i++, umo, e.rec.GetScore(), e.rec.win, e.rec.lost);
                     }
                 }
             }

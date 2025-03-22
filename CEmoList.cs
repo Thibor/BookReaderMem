@@ -42,7 +42,7 @@ namespace NSProgram
 			int total = 0;
 			for(int n=0;n<Count;n++)
 			{
-				int value = this[n].rec.Value();
+				int value = this[n].rec.GetValue();
 				total += value;
 				if (rnd.Next(total) < value)
 					bst = n;
@@ -71,7 +71,7 @@ namespace NSProgram
 		{
 			Sort(delegate (CEmo e1, CEmo e2)
 			{
-				return e2.rec.Value() - e1.rec.Value();
+				return e2.rec.GetScore() - e1.rec.GetScore();
 			});
 		}
 

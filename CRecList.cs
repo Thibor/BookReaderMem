@@ -19,12 +19,16 @@ namespace NSProgram
             return win + lost;
         }
 
-        public int Value()
+        public int GetScore()
         {
-            int g = Games();
-            if(g==0)
+            if (Games() == 0)
                 return 0;
-            return (win * 800) / g - 400;
+            return GetValue() - 400;
+        }
+
+        public int GetValue()
+        {
+            return (800 * win) / Games();
         }
 
     }
@@ -113,7 +117,7 @@ namespace NSProgram
         {
             Sort(delegate (CRec r1, CRec r2)
             {
-                return r2.Value() - r1.Value();
+                return r2.GetScore() - r1.GetScore();
             });
         }
 
